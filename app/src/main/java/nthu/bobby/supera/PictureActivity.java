@@ -19,7 +19,7 @@ import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class FunctionActivity extends Activity implements View.OnClickListener {
+public class PictureActivity extends Activity implements View.OnClickListener {
     private FuncUI UI;
     private String type;
     private String imgPath;
@@ -55,21 +55,9 @@ public class FunctionActivity extends Activity implements View.OnClickListener {
         TextView tv = (TextView)findViewById(R.id.textView);
         tv.setText(type);
         if(type.equals("camera")) {
-            Intent intent_camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            String mediaStorageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/";
 
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            imgPath = mediaStorageDir + "/" + "IMG_" + timeStamp + ".jpg"; // set the image file name
-            intent_camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(imgPath)));
-
-            startActivityForResult(intent_camera, 0); // start the image capture Intent
         }
         else if(type.equals("album")) {
-            Intent intent_album = new Intent(Intent.ACTION_PICK);
-            intent_album.setType("image/*");
-            intent_album.setAction(Intent.ACTION_GET_CONTENT);
-            //startActivityForResult(intent_album, REQUEST_IMAGE_SELECT);
-            startActivityForResult(intent_album, 0);
         }
     }
 
@@ -79,6 +67,7 @@ public class FunctionActivity extends Activity implements View.OnClickListener {
 
         }
     }
+
     @Override
     /*取得並顯示照片*/
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -115,4 +104,5 @@ public class FunctionActivity extends Activity implements View.OnClickListener {
 
         super.onActivityResult(requestCode, resultCode, data);
     }
+
 }

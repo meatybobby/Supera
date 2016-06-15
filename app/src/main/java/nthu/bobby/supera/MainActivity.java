@@ -1,51 +1,52 @@
 package nthu.bobby.supera;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Camera;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
-public class MainActivity extends Activity implements View.OnClickListener {
+import android.widget.ImageButton;
 
-    private MainUI UI;
-    private String type;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class MainActivity extends Activity {
+
+    public ImageButton btnCamera, btnAlbum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        UI = new MainUI(this);
-        UI.setToOnClickListener(this);
+        btnAlbum = (ImageButton) findViewById(R.id.btnAlbum);
+        btnCamera = (ImageButton) findViewById(R.id.btnCamera);
+        btnAlbum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getPicture();
+            }
+        });
+        btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, CameraActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btnCamera:
-                type = "camera";
-
-                break;
-            case R.id.btnAlbum:
-                type = "album";
-
-                break;
-        }
-        Intent intent = new Intent(MainActivity.this, FunctionActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putString("type", type);
-        intent.putExtras(bundle);
-
+    private void getPicture() {
+        Intent intent = new Intent(MainActivity.this, PictureActivity.class);
         startActivity(intent);
-        /* 傳資料給不同activity
-        * //new一個Bundle物件，並將要傳遞的資料傳入
-              Bundle bundle = new Bundle();
-              bundle.putDouble("height",height );
-              bundle.putString("sex", sex);
-
-              //將Bundle物件assign給intent
-              intent.putExtras(bundle);
-        * */
-
     }
+
 }
