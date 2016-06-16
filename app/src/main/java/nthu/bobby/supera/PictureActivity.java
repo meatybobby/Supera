@@ -10,9 +10,19 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
+
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,12 +33,24 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     private FuncUI UI;
     private String type;
     private String imgPath;
-    private Bitmap image;
+    private Bitmap image, imgResult;
+    private Bitmap imgCanny, imgBlur;
+
+    void opencvLoader(BaseLoaderCallback mLoaderCallback){
+        if (!OpenCVLoader.initDebug()) {
+            Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        } else {
+            Log.d("OpenCV", "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+    }
+    int Red=0, Green=0, Blue=0;
     public double window_W, window_H;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_function);
+        setContentView(R.layout.activity_picture);
 
         UI = new FuncUI(this);
         UI.setToOnClickListener(this);
@@ -39,70 +61,160 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         window_W = metrics.widthPixels;
         window_H = metrics.heightPixels;
 
+        /*開啟相簿*/
+        Intent intent_album = new Intent(Intent.ACTION_PICK);
+        intent_album.setType("image/*");
+        intent_album.setAction(Intent.ACTION_GET_CONTENT);
+        //startActivityForResult(intent_album, REQUEST_IMAGE_SELECT);
+        startActivityForResult(intent_album, 0);
 
-        /*Intent intent_camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        imgPath = "IMG" + timeStamp + ".jpg";
-        File tmpFile = new File(Environment.getExternalStorageDirectory(), imgPath);
-        intent_camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tmpFile));
-        startActivityForResult(intent_camera, 0);*/
+        UI.seekBarR.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                //UI.textView.setText("pr = " + progress);
+                Red = progress;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
 
-        //Intent intent = this.getIntent();
-        //String type = intent.getStringExtra("type");
-        Bundle bundle = getIntent().getExtras();
-        type = bundle.getString("type");
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                imgResult = ImageRGB.apply(image, Red, Green, Blue);
+                UI.imageView.setImageBitmap(imgResult);
+            }
+        });
 
-        TextView tv = (TextView)findViewById(R.id.textView);
-        tv.setText(type);
-        if(type.equals("camera")) {
+        UI.seekBarG.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Green = progress;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                imgResult = ImageRGB.apply(image, Red, Green, Blue);
+                UI.imageView.setImageBitmap(imgResult);
+            }
+        });
+        UI.seekBarB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Blue = progress;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                imgResult = ImageRGB.apply(image, Red, Green, Blue);
+                UI.imageView.setImageBitmap(imgResult);
+            }
+        });
 
-        }
-        else if(type.equals("album")) {
-        }
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
 
+            case R.id.btnCanny:
+                UI.textView.setText("Start!");
+                BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+                    @Override
+                    public void onManagerConnected(int status) {
+                        switch (status) {
+                            case LoaderCallbackInterface.SUCCESS:
+                            {
+                                Log.i("OpenCV", "OpenCV loaded successfully");
+                                Mat imgMat = new Mat();
+                                Mat imgMatResult = new Mat();
+
+                                image = imgResult;
+                                Utils.bitmapToMat(image, imgMat);
+
+                                Imgproc.Canny(imgMat,imgMatResult,123,250);
+                                Utils.matToBitmap(imgMatResult, imgResult);
+                                //Imgproc.adaptiveThreshold(imgMat,imgMatResult,255,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY,11,2);
+                                //cvtColor(imgMat, image, CV_BGR2GRAY);
+                            } break;
+                            default:
+                            {
+                                super.onManagerConnected(status);
+                            } break;
+                        }
+                    }
+                };
+                opencvLoader(mLoaderCallback);
+                UI.textView.setText("Finish><");
+                UI.imageView.setImageBitmap(imgResult);
+            break;
+
+            case R.id.btnBlur:
+                UI.textView.setText("Start!");
+                BaseLoaderCallback mLoaderCallback1 = new BaseLoaderCallback(this) {
+                    @Override
+                    public void onManagerConnected(int status) {
+                        switch (status) {
+                            case LoaderCallbackInterface.SUCCESS:
+                            {
+                                Log.i("OpenCV", "OpenCV loaded successfully");
+                                Mat imgMat = new Mat();
+                                Mat imgMatResult = new Mat();
+
+                                image = imgResult;
+                                Utils.bitmapToMat(image, imgMat);
+                                Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
+                                Utils.matToBitmap(imgMatResult, imgResult);
+                            } break;
+                            default:
+                            {
+                                super.onManagerConnected(status);
+                            } break;
+                        }
+                    }
+                };
+                opencvLoader(mLoaderCallback1);
+                UI.imageView.setImageBitmap(imgResult);
+                UI.textView.setText("Finish><");
+            break;
+
+            case R.id.btnRGB:
+                image = imgResult;
+                UI.viewAnimator.showNext();
+                //UI.textView.setText(UI.seekBarR.getProgress());
+                break;
+            case  R.id.btnEnhance:
+                image = imgResult;
+                imgResult = ImageEnhancement.apply(image);
+                UI.imageView.setImageBitmap(imgResult);
+                break;
         }
     }
+
 
     @Override
     /*取得並顯示照片*/
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK && requestCode == 0)
         {
-            //利用BitmapFactory取得剛剛拍照的影像
-            if(type.equals("camera")) {
-                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                bmOptions.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(imgPath, bmOptions);
-                // Determine how much to scale down the image
-                double photoW = bmOptions.outWidth;
-                double photoH = bmOptions.outHeight *0.6;
-                int scaleFactor = (int)Math.ceil(Math.max((photoW / window_W), (photoH / window_W)));
-
-                // Decode the image file into a Bitmap sized to fill the View
-                image = BitmapFactory.decodeFile(imgPath);
-                image = ImageTransform.resize(image, scaleFactor);
-            }
             //用URI取得相簿中的影像
-            else{
-                Uri uri = data.getData();
-                ContentResolver cr = this.getContentResolver();
+             Uri uri = data.getData();
+             ContentResolver cr = this.getContentResolver();
 
-                try {//讀取照片，型態為Bitmap
-                    image = BitmapFactory.decodeStream(cr.openInputStream(uri));
-                }
-                catch (FileNotFoundException e)
-                {
-                }
-            }
+             try {//讀取照片，型態為Bitmap
+                 image = BitmapFactory.decodeStream(cr.openInputStream(uri));
+             }
+             catch (FileNotFoundException e)
+             {
+             }
+
             UI.imageView.setImageBitmap(image);
+            imgResult = image;
         }
 
         super.onActivityResult(requestCode, resultCode, data);
     }
-
 }
