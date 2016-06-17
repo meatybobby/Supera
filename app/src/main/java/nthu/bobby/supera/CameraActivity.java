@@ -1,60 +1,119 @@
 package nthu.bobby.supera;
 
 import android.app.Activity;
-import android.hardware.Camera;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
-import android.view.SurfaceHolder;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.view.WindowManager;
+import android.widget.Toast;
 
-import java.io.IOException;
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.JavaCameraView;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
-public class CameraActivity extends Activity {
-    private Camera camera;
-    private SurfaceView previewView;
-    private SurfaceHolder previewHolder;
-    private boolean previewing = false;
+public class CameraActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+    private CameraBridgeViewBase mOpenCvCameraView;
+    private boolean              mIsJavaCamera = true;
+    private MenuItem mItemSwitchCamera = null;
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i("OpenCV", "OpenCV loaded successfully");
+                    mOpenCvCameraView.enableView();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-        getWindow().setFormat(PixelFormat.UNKNOWN);
-        previewView = (SurfaceView)findViewById(R.id.surfaceView);
-        previewHolder = previewView.getHolder();
-        previewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        previewHolder.addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                camera = Camera.open();
-                camera.setDisplayOrientation(90);
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                if(previewing) {
-                    camera.stopPreview();
-                    previewing = false;
-                }
-                try {
-                    camera.setPreviewDisplay(holder);
-                    Camera.Parameters parameters = camera.getParameters();
-                    parameters.setFocusMode("auto");
-                    camera.setParameters(parameters);
-                    camera.startPreview();
-                    previewing = true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                camera.stopPreview();
-                camera.release();
-                camera = null;
-                previewing = false;
-            }
-        });
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.java_surface_view);
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setCvCameraViewListener(this);
     }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i("OpenCV", "called onCreateOptionsMenu");
+        mItemSwitchCamera = menu.add("Toggle Native/Java camera");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        String toastMesage = new String();
+        Log.i("OpenCV", "called onOptionsItemSelected; selected item: " + item);
+
+        if (item == mItemSwitchCamera) {
+            mOpenCvCameraView.setVisibility(SurfaceView.GONE);
+            mIsJavaCamera = !mIsJavaCamera;
+
+            if (mIsJavaCamera) {
+                mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.java_surface_view);
+                toastMesage = "Java Camera";
+            }
+            mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+            mOpenCvCameraView.setCvCameraViewListener(this);
+            mOpenCvCameraView.enableView();
+            Toast toast = Toast.makeText(this, toastMesage, Toast.LENGTH_LONG);
+            toast.show();
+
+        }
+
+        return true;
+    }
+
+    public void onCameraViewStarted(int width, int height) {
+    }
+
+    public void onCameraViewStopped() {
+    }
+
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        Mat mRgba = inputFrame.rgba();
+        Mat reuslt = new Mat();
+        Imgproc.Canny(mRgba,reuslt,123,250);
+        return reuslt;
+    }
+
 }
