@@ -1,7 +1,6 @@
 package nthu.bobby.supera;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -24,7 +23,6 @@ public class CameraActivity extends Activity implements CameraBridgeViewBase.CvC
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean              mIsJavaCamera = true;
     private MenuItem mItemSwitchCamera = null;
-    private Bitmap bmp;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -34,7 +32,6 @@ public class CameraActivity extends Activity implements CameraBridgeViewBase.CvC
                 {
                     Log.i("OpenCV", "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    FaceProcessor.Init(getApplicationContext());
                 } break;
                 default:
                 {
