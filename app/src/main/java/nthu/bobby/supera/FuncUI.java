@@ -15,7 +15,7 @@ import android.widget.ViewAnimator;
  */
 public class FuncUI {
     public ImageView imageView;
-    public Button button, btnCanny, btnBlur, btnRGB, btnEnhance;
+    public Button button, btnCanny, btnBlur, btnRGB, btnEnhance, btnGray;
     public TextView textView;
     public ViewAnimator viewAnimator;
     public SeekBar seekBarR, seekBarG, seekBarB;
@@ -28,6 +28,7 @@ public class FuncUI {
         btnCanny = (Button)activity.findViewById(R.id.btnCanny);
         btnRGB = (Button)activity.findViewById(R.id.btnRGB);
         btnEnhance = (Button)activity.findViewById(R.id.btnEnhance);
+        btnGray = (Button)activity.findViewById(R.id.btnGray);
         viewAnimator = (ViewAnimator)activity.findViewById(R.id.viewAnimator);
         seekBarR = (SeekBar)activity.findViewById(R.id.seekBarR);
         seekBarG = (SeekBar)activity.findViewById(R.id.seekBarG);
@@ -40,6 +41,7 @@ public class FuncUI {
         btnCanny.setOnClickListener(listener);
         btnRGB.setOnClickListener(listener);
         btnEnhance.setOnClickListener(listener);
+        btnGray.setOnClickListener(listener);
     }
 
 }

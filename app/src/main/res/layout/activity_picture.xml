@@ -33,12 +33,11 @@
                 android:layout_weight="1"
                 android:background="#1c1c1c">
 
-                <TextView
+                <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="Large Text"
-                    android:id="@+id/textView" />
+                    android:text="Gray"
+                    android:id="@+id/btnGray" />
 
                 <Button
                     android:layout_width="wrap_content"
@@ -64,11 +63,12 @@
                     android:text="RGB"
                     android:id="@+id/btnRGB" />
 
-                <Button
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gray"
-                    android:id="@+id/btnGray" />
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text="Large Text"
+                    android:id="@+id/textView" />
             </LinearLayout>
         </HorizontalScrollView>
 
