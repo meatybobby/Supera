@@ -13,7 +13,7 @@ import android.graphics.Rect;
  */
 public class ImageTransform {
 
-    public static Bitmap resize(Bitmap src, float scale){
+    public static Bitmap resize(Bitmap src, float scale) {
         Bitmap result;
         result = Bitmap.createScaledBitmap(src, (int)(src.getWidth() / scale), (int)(src.getHeight() / scale), false);
 

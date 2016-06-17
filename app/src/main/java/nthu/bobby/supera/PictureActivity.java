@@ -1,6 +1,7 @@
 package nthu.bobby.supera;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,15 +21,20 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.Callable;
 
+import static org.opencv.imgproc.Imgproc.COLOR_GRAY2RGB;
+import static org.opencv.imgproc.Imgproc.COLOR_RGBA2RGB;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class PictureActivity extends Activity implements View.OnClickListener {
@@ -38,6 +44,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     private Bitmap image, imgResult;
     private Bitmap imgCanny, imgBlur;
     private boolean opencvEnable = false;
+    private ProgressDialog dialog;
 
     void opencvLoader(BaseLoaderCallback mLoaderCallback){
         if (!OpenCVLoader.initDebug()) {
@@ -125,34 +132,6 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 
             case R.id.btnCanny:
                 UI.textView.setText("Start!");
-                /*BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-                    @Override
-                    public void onManagerConnected(int status) {
-                        switch (status) {
-                            case LoaderCallbackInterface.SUCCESS:
-                            {
-                                Log.i("OpenCV", "OpenCV loaded successfully");
-                                Mat imgMat = new Mat();
-                                Mat imgMatResult = new Mat();
-
-                                image = imgResult;
-                                Utils.bitmapToMat(image, imgMat);
-
-                                Imgproc.Canny(imgMat,imgMatResult,123,250);
-                                Utils.matToBitmap(imgMatResult, imgResult);
-                                //Imgproc.adaptiveThreshold(imgMat,imgMatResult,255,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY,11,2);
-                                //cvtColor(imgMat, image, CV_BGR2GRAY);
-                            } break;
-                            default:
-                            {
-                                super.onManagerConnected(status);
-                            } break;
-                        }
-                    }
-
-                };
-                opencvLoader(mLoaderCallback);
-                UI.textView.setText("Finish><");*/
                 if(opencvEnable){
                     Mat imgMat = new Mat();
                     Mat imgMatResult = new Mat();
@@ -160,7 +139,8 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     image = imgResult;
                     Utils.bitmapToMat(image, imgMat);
 
-                    Imgproc.Canny(imgMat,imgMatResult,123,250);
+                    // Imgproc.Canny(imgMat,imgMatResult,123,250);
+                    imgMatResult = ImageEffect.pencil(imgMat);
                     Utils.matToBitmap(imgMatResult, imgResult);
                 }
                 UI.imageView.setImageBitmap(imgResult);
@@ -173,11 +153,11 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 
                     image = imgResult;
                     Utils.bitmapToMat(image, imgMat);
-                    Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
+                    imgMatResult = ImageEffect.cartoonize(imgMat);
+                    // Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
                     Utils.matToBitmap(imgMatResult, imgResult);
                 }
                 UI.imageView.setImageBitmap(imgResult);
-
             break;
 
             case R.id.btnRGB:
@@ -251,4 +231,5 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
+
 }

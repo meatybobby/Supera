@@ -2,6 +2,23 @@ package nthu.bobby.supera;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Debug;
+import android.util.Log;
+
+import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+
+import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C;
+import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
+import static org.opencv.imgproc.Imgproc.COLOR_GRAY2RGB;
+import static org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY;
+import static org.opencv.imgproc.Imgproc.COLOR_RGBA2GRAY;
+import static org.opencv.imgproc.Imgproc.COLOR_RGBA2RGB;
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 
 /**
  * Created by gatto on 2016/6/17.
@@ -55,4 +72,71 @@ public class ImageEffect {
 
         return result;
     }
+
+    public static Mat cartoonize(Mat img) {
+        Mat result = new Mat();
+        Mat temp = new Mat();
+        Imgproc.cvtColor(img,temp,COLOR_RGBA2RGB);
+        Imgproc.pyrDown(temp,result);
+        Imgproc.pyrDown(result,temp);
+        for(int i = 0;i<3;i++) {
+            Imgproc.bilateralFilter(temp, result, 9, 9, 7);
+            Imgproc.bilateralFilter(result, temp, 9, 9, 7);
+        }
+        Imgproc.bilateralFilter(temp,result,9,9,7);
+        Imgproc.pyrUp(result,temp);
+        Imgproc.pyrUp(temp,result);
+        return result;
+    }
+
+    public static Mat getEdge(Mat img) {
+        Mat result = new Mat();
+        Mat temp = new Mat();
+        Imgproc.cvtColor(img,result,COLOR_RGBA2GRAY);
+        Imgproc.medianBlur(result,temp,7);
+        Imgproc.adaptiveThreshold(temp,result,255,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,9,2);
+        return result;
+    }
+
+    private static Mat dodge(Mat img,Mat mask) {
+        Mat maskC = new Mat();
+        Core.bitwise_not(mask,maskC);
+        Mat result = new Mat();
+        Log.d("Debug","BD");
+        // Core.divide(img,maskC,result,256);
+        Log.d("Debug","AD");
+        return result;
+    }
+
+    private static Mat burn(Mat img,Mat mask) {
+        Mat maskC = new Mat();
+        Core.bitwise_not(mask,maskC);
+        Mat imgC = new Mat();
+        Core.bitwise_not(img,imgC);
+        Mat result = new Mat();
+        Core.divide(imgC,maskC,result,256);
+        Core.bitwise_not(result,result);
+        return result;
+    }
+
+    public static Mat pencil(Mat img) {
+        Mat imgGray = new Mat();
+        Mat imgGrayInv = new Mat();
+        Mat imgBlur = new Mat();
+        Imgproc.cvtColor(img,imgGray,COLOR_RGBA2GRAY);
+        Core.bitwise_not(imgGray,imgGrayInv);
+        Imgproc.GaussianBlur(imgGrayInv,imgBlur,new Size(21,21), 0,0);
+        Mat result = dodge(imgGray,imgBlur);
+        return result;
+    }
+
+    public static Mat cartoonEdge(Mat img) {
+        Mat cartoon = ImageEffect.cartoonize(img);
+        Mat edge = ImageEffect.getEdge(img);
+        Mat result = new Mat();
+        Imgproc.cvtColor(edge,edge,COLOR_GRAY2RGB);
+        Core.bitwise_and(cartoon,edge,result);
+        return result;
+    }
+
 }
