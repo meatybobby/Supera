@@ -27,6 +27,7 @@ import static org.opencv.imgproc.Imgproc.COLOR_RGBA2GRAY;
 import static org.opencv.imgproc.Imgproc.COLOR_RGBA2RGB;
 import static org.opencv.imgproc.Imgproc.LINE_4;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
+import static org.opencv.imgproc.Imgproc.ellipse;
 
 /**
  * Created by gatto on 2016/6/17.
@@ -38,19 +39,55 @@ public class ImageEffect {
         Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
 
         int x, y, srcR, srcG, srcB;
-        for (x = 0; x < width; x++) {
-            for (y = 0; y < height; y++) {
-                srcR = Color.red(src.getPixel(x, y)) + R * 3;
-                srcG = Color.green(src.getPixel(x, y)) + G * 3;
-                srcB = Color.blue(src.getPixel(x, y)) + B * 3;
-                if (srcR > 255) srcR = 255;
-                if (srcG > 255) srcG = 255;
-                if (srcB > 255) srcB = 255;
+        for(x=0; x<width; x++){
+            for(y=0; y<height; y++){
+                srcR = Color.red(src.getPixel(x, y)) + R*3;
+                srcG = Color.green(src.getPixel(x, y)) + G*3;
+                srcB = Color.blue(src.getPixel(x, y)) + B*3;
+                if(srcR>255) srcR=255;
+                if(srcG>255) srcG=255;
+                if(srcB>255) srcB=255;
+                if(srcR<0) srcR=0;
+                if(srcG<0) srcG=0;
+                if(srcB<0) srcB=0;
                 result.setPixel(x, y, Color.argb(1, srcR, srcG, srcB));
             }
         }
         return result;
     }
+
+    /*public static Mat setRGB(Mat src, int R, int G, int B){
+        int width = src.cols();
+        int height = src.rows();
+
+        byte[] Value = new byte[(int) (src.total()*src.channels())];
+        src.get(0,0,Value);
+        int srcR, srcG, srcB;
+        for(int i = 0;i<Value.length;i+=4) {
+            srcR = Value[i]&0xFF
+        }
+    }*/
+
+    public static Bitmap Brighten(Bitmap src, double alpha,int beta){
+        int width = src.getWidth();
+        int height = src.getHeight();
+        Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
+
+        int x, y, srcR, srcG, srcB;
+        for(x=0; x<width; x++){
+            for(y=0; y<height; y++){
+                srcR = (int)alpha * Color.red(src.getPixel(x, y)) + beta;
+                srcG = (int)alpha * Color.green(src.getPixel(x, y)) + beta;
+                srcB = (int)alpha * Color.blue(src.getPixel(x, y)) + beta;
+                if(srcR>255) srcR=255;
+                if(srcG>255) srcG=255;
+                if(srcB>255) srcB=255;
+                result.setPixel(x, y, Color.argb(1, srcR, srcG, srcB));
+            }
+        }
+        return result;
+    }
+
 
     public static Bitmap Enhancement(Bitmap src) {
         int width = src.getWidth();
@@ -169,6 +206,49 @@ public class ImageEffect {
         return result;
     }
 
+    public static Mat darkMask(Mat imgMat){
+        Mat imgMatResult = new Mat();
+        Point p = new Point(imgMat.cols()/2, imgMat.rows()/2);
+        Mat dark = new Mat(imgMat.rows(), imgMat.cols(), CvType.CV_32FC4, new Scalar(0.4,0.4,0.4));
+
+        Size axes = new Size(imgMat.cols()/2.1, imgMat.rows()/2.1);
+        ellipse(dark, p, axes, 0, 0, 360, new Scalar(1,1,1), -1);
+        //Imgproc.GaussianBlur(dark, dark, new Size(33,33), 19, 19);
+        Imgproc.blur(dark,dark, new Size(51,51));
+        imgMat.convertTo(imgMat, CvType.CV_32FC4);
+        imgMatResult = dark.mul(imgMat);
+        imgMatResult.convertTo(imgMatResult, CvType.CV_8UC4);
+
+        return imgMatResult;
+    }
+
+    public static Mat HSV(Mat imgMat, int hh, double ss, int vv){
+        Mat imgMatResult = new Mat();
+        Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_RGB2HSV);
+        int w = imgMat.cols();
+        int h = imgMat.rows();
+
+        byte[] imgValue = new byte[(int) (imgMat.total()*imgMat.channels())];
+        imgMat.get(0,0,imgValue);
+        int s,v;
+        for(int i = 0;i<imgValue.length;i+=3) {
+            // imgValue[i] = (byte) (imgValue[i]& 0xFF);
+            s = (int) ((int)(imgValue[i+1]&0xFF)*ss);
+            if(s>255) s= 255; if(s<0) s=0;
+            imgValue[i+1] =(byte) s;
+
+            v = (int)(imgValue[i+2]&0xFF) + vv;
+            if(v>255) v= 255; if(v<0) v=0;
+            imgValue[i+2] =(byte) v;
+            //if( !((imgValue[i]>0&&imgValue[i]<8) || (imgValue[i]>120&&imgValue[i]<180)) )
+            //if(!((imgValue[i]>0&&imgValue[i]<100)&&(imgValue[i+1]>58&&imgValue[i+1]<173)))
+                //imgValue[i+1] = 0;
+        }
+
+        imgMat.put(0,0,imgValue);
+        Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_HSV2RGB);
+        return imgMat;
+    }
     public static Mat detailEnhance(Mat img) {
         Mat result = new Mat();
         Photo.detailEnhance(img,result);

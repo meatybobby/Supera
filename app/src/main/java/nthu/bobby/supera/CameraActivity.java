@@ -1,6 +1,7 @@
 package nthu.bobby.supera;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -111,7 +112,7 @@ public class CameraActivity extends Activity implements CameraBridgeViewBase.CvC
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat mRgba = inputFrame.rgba();
-        //bmp = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
+        //Bitmap bmp = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
         //Utils.matToBitmap(mRgba,bmp);
         //Utils.bitmapToMat(FaceProcessor.drawEyes(bmp),mRgba);
         return ImageEffect.pencil(mRgba);

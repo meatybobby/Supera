@@ -36,6 +36,48 @@
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="cartoon"
+                    android:id="@+id/btnCartoon" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LOMO"
+                    android:id="@+id/btnLomo" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Old"
+                    android:id="@+id/btnOld" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Red"
+                    android:id="@+id/btnRed" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Blue"
+                    android:id="@+id/btnBlue" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Green"
+                    android:id="@+id/btnGreen" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="pencil"
+                    android:id="@+id/btnPencil" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="Gray"
                     android:id="@+id/btnGray" />
 
@@ -49,7 +91,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Edge"
-                    android:id="@+id/btnCanny" />
+                    android:id="@+id/btnEdge" />
 
                 <Button
                     android:layout_width="wrap_content"
@@ -71,6 +113,13 @@
                     android:id="@+id/textView" />
             </LinearLayout>
         </HorizontalScrollView>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="orig"
+            android:id="@+id/btnOrig"
+            android:layout_weight="0.21" />
 
     </LinearLayout>
 

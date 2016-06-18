@@ -15,7 +15,9 @@ import android.widget.ViewAnimator;
  */
 public class FuncUI {
     public ImageView imageView;
-    public Button button, btnCanny, btnBlur, btnRGB, btnEnhance, btnGray;
+    public Button button, btnEdge, btnBlur, btnRGB, btnEnhance, btnGray;
+    public Button btnRed, btnBlue, btnGreen, btnOld, btnOrig;
+    public Button btnCartoon, btnPencil, btnLomo;
     public TextView textView;
     public ViewAnimator viewAnimator;
     public SeekBar seekBarR, seekBarG, seekBarB;
@@ -24,11 +26,19 @@ public class FuncUI {
         imageView = (ImageView)activity.findViewById(R.id.imageView);
         textView = (TextView)activity.findViewById(R.id.textView);
         //button = (Button)activity.findViewById(R.id.button);
+        btnOrig = (Button)activity.findViewById(R.id.btnOrig);
         btnBlur = (Button)activity.findViewById(R.id.btnBlur);
-        btnCanny = (Button)activity.findViewById(R.id.btnCanny);
+        btnEdge = (Button)activity.findViewById(R.id.btnEdge);
         btnRGB = (Button)activity.findViewById(R.id.btnRGB);
         btnEnhance = (Button)activity.findViewById(R.id.btnEnhance);
         btnGray = (Button)activity.findViewById(R.id.btnGray);
+        btnRed = (Button)activity.findViewById(R.id.btnRed);
+        btnGreen = (Button)activity.findViewById(R.id.btnGreen);
+        btnBlue = (Button)activity.findViewById(R.id.btnBlue);
+        btnOld = (Button)activity.findViewById(R.id.btnOld);
+        btnCartoon = (Button)activity.findViewById(R.id.btnCartoon);
+        btnPencil = (Button)activity.findViewById(R.id.btnPencil);
+        btnLomo = (Button)activity.findViewById(R.id.btnLomo);
         viewAnimator = (ViewAnimator)activity.findViewById(R.id.viewAnimator);
         seekBarR = (SeekBar)activity.findViewById(R.id.seekBarR);
         seekBarG = (SeekBar)activity.findViewById(R.id.seekBarG);
@@ -37,11 +47,19 @@ public class FuncUI {
 
     public void setToOnClickListener(View.OnClickListener listener) {
         //button.setOnClickListener(listener);
+        btnOrig.setOnClickListener(listener);
         btnBlur.setOnClickListener(listener);
-        btnCanny.setOnClickListener(listener);
+        btnEdge.setOnClickListener(listener);
         btnRGB.setOnClickListener(listener);
         btnEnhance.setOnClickListener(listener);
         btnGray.setOnClickListener(listener);
+        btnRed.setOnClickListener(listener);
+        btnBlue.setOnClickListener(listener);
+        btnGreen.setOnClickListener(listener);
+        btnOld.setOnClickListener(listener);
+        btnCartoon.setOnClickListener(listener);
+        btnPencil.setOnClickListener(listener);
+        btnLomo.setOnClickListener(listener);
     }
 
 }
