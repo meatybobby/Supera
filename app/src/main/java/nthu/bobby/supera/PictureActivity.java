@@ -41,8 +41,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     private FuncUI UI;
     private String type;
     private String imgPath;
-    private Bitmap image, imgResult;
-    private Bitmap imgCanny, imgBlur;
+    private Bitmap image, imgResult, imgOrig;
     private boolean opencvEnable = false;
     private ProgressDialog dialog;
 
@@ -78,6 +77,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         intent_album.setAction(Intent.ACTION_GET_CONTENT);
         //startActivityForResult(intent_album, REQUEST_IMAGE_SELECT);
         startActivityForResult(intent_album, 0);
+
 
         UI.seekBarR.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -128,59 +128,90 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
+        if(opencvEnable) {
+            image = imgResult.copy(Bitmap.Config.ARGB_8888, true);;
+            Mat imgMat = new Mat();
+            Mat imgMatResult = new Mat();
+            Utils.bitmapToMat(image, imgMat);
 
-            case R.id.btnCanny:
-                UI.textView.setText("Start!");
-                if(opencvEnable){
-                    Mat imgMat = new Mat();
-                    Mat imgMatResult = new Mat();
+            switch (v.getId()) {
+                case R.id.btnOrig:
+                    imgResult = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
+                    break;
 
-                    image = imgResult;
-                    Utils.bitmapToMat(image, imgMat);
-
-                    // Imgproc.Canny(imgMat,imgMatResult,123,250);
-                    imgMatResult = ImageEffect.pencil(imgMat);
+                case R.id.btnCartoon:
+                    imgMatResult = ImageEffect.cartoonEdge(imgMat);
                     Utils.matToBitmap(imgMatResult, imgResult);
-                }
-                UI.imageView.setImageBitmap(imgResult);
-            break;
+                    break;
 
-            case R.id.btnBlur:
-                if(opencvEnable){
-                    Mat imgMat = new Mat();
-                    Mat imgMatResult = new Mat();
+                case R.id.btnLomo:
+                    imgMat = ImageEffect.darkMask(imgMat);
+                    imgMatResult = ImageEffect.HSV(imgMat,0,1.3,-10);
+                    //imgMatResult = ImageEffect.changeRGB(imgMatResult,3,7,11);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                    break;
 
-                    image = imgResult;
-                    Utils.bitmapToMat(image, imgMat);
+                case R.id.btnOld:
+                    imgMat = ImageEffect.darkMask(imgMat);
+                    imgMatResult = ImageEffect.HSV(imgMat, 0, 0.8, 10);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                    imgResult = ImageEffect.changeRGB(imgResult, 5, -5, -5);
+                    break;
+
+                case R.id.btnRed:
+                    //imgMatResult = ImageEffect.HSV(imgMat,0,-100,0);
+                    imgMatResult = ImageEffect.HSV(imgMat, 0, 1.5, 0);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                    //imgResult = ImageEffect.changeRGB(imgResult,20,0,0);
+
+                    break;
+                case R.id.btnGreen:
+                    //imgMatResult = ImageEffect.HSV(imgMat, 0, -100, 10);
+                    Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                    imgResult = ImageEffect.changeRGB(imgResult, 0, 15, 0);
+                    break;
+
+                case R.id.btnBlue:
+                    //imgMatResult = ImageEffect.HSV(imgMat, 0, -100, 10);
+                    Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                    imgResult = ImageEffect.changeRGB(imgResult, 0, 0, 15);
+                    break;
+
+                case R.id.btnEdge:
+                    //Imgproc.Canny(imgMat,imgMatResult,123,250);
+                    imgMatResult = ImageEffect.darkMask(imgMat);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                    //imgResult = ImageEffect.Brighten(image,2.2,10);
+                    break;
+
+                case R.id.btnBlur:
                     imgMatResult = ImageEffect.cartoonize(imgMat);
                     // Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
                     Utils.matToBitmap(imgMatResult, imgResult);
-                }
-                UI.imageView.setImageBitmap(imgResult);
-            break;
+                    break;
 
-            case R.id.btnRGB:
-                image = imgResult;
-                UI.viewAnimator.showNext();
-                //UI.textView.setText(UI.seekBarR.getProgress());
-                break;
-            case  R.id.btnEnhance:
-                image = imgResult;
-                imgResult = ImageEffect.Enhancement(image);
-                UI.imageView.setImageBitmap(imgResult);
-                break;
-            case R.id.btnGray:
-                image = imgResult;
-                if(opencvEnable){
-                    Mat imgMat = new Mat();
-                    Mat imgMatResult = new Mat();
-                    Utils.bitmapToMat(image, imgMat);
+                case R.id.btnRGB:
+                    UI.viewAnimator.showNext();
+                    //UI.textView.setText(UI.seekBarR.getProgress());
+                    break;
+
+                case R.id.btnEnhance:
+                    imgResult = ImageEffect.Enhancement(image);
+                    break;
+
+                case R.id.btnPencil:
+                    imgMatResult = ImageEffect.pencil(imgMat);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                    break;
+
+                case R.id.btnGray:
                     Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
                     Utils.matToBitmap(imgMatResult, imgResult);
-                }
-                UI.imageView.setImageBitmap(imgResult);
-                break;
+                    break;
+            }
+            UI.imageView.setImageBitmap(imgResult);
         }
     }
 
@@ -200,7 +231,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
              catch (FileNotFoundException e)
              {
              }
-
+            imgOrig = image.copy(Bitmap.Config.ARGB_8888, true);
             UI.imageView.setImageBitmap(image);
             imgResult = image;
         }
