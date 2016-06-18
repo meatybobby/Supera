@@ -41,12 +41,12 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     private FuncUI UI;
     private String type;
     private String imgPath;
-    private Bitmap image, imgResult;
+    private Bitmap image, imgResult, imgOrig;
     private Bitmap imgCanny, imgBlur;
     private boolean opencvEnable = false;
     private ProgressDialog dialog;
 
-    void opencvLoader(BaseLoaderCallback mLoaderCallback){
+    void opencvLoader(BaseLoaderCallback mLoaderCallback) {
         if (!OpenCVLoader.initDebug()) {
             Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
@@ -55,7 +55,8 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
-    int Red=0, Green=0, Blue=0;
+
+    int Red = 0, Green = 0, Blue = 0;
     public double window_W, window_H;
 
     @Override
@@ -85,9 +86,11 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                 //UI.textView.setText("pr = " + progress);
                 Red = progress;
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 imgResult = ImageEffect.changeRGB(image, Red, Green, Blue);
@@ -95,28 +98,32 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             }
         });
 
-        UI.seekBarG.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+        UI.seekBarG.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Green = progress;
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 imgResult = ImageEffect.changeRGB(image, Red, Green, Blue);
                 UI.imageView.setImageBitmap(imgResult);
             }
         });
-        UI.seekBarB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+        UI.seekBarB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Blue = progress;
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 imgResult = ImageEffect.changeRGB(image, Red, Green, Blue);
@@ -132,47 +139,54 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 
             case R.id.btnCanny:
                 UI.textView.setText("Start!");
-                if(opencvEnable){
+                if (opencvEnable) {
                     Mat imgMat = new Mat();
                     Mat imgMatResult = new Mat();
-
                     image = imgResult;
                     Utils.bitmapToMat(image, imgMat);
-
                     // Imgproc.Canny(imgMat,imgMatResult,123,250);
                     imgMatResult = ImageEffect.pencil(imgMat);
                     Utils.matToBitmap(imgMatResult, imgResult);
                 }
                 UI.imageView.setImageBitmap(imgResult);
-            break;
+                break;
 
             case R.id.btnBlur:
-                if(opencvEnable){
+                if (opencvEnable) {
                     Mat imgMat = new Mat();
                     Mat imgMatResult = new Mat();
 
                     image = imgResult;
                     Utils.bitmapToMat(image, imgMat);
-                    imgMatResult = ImageEffect.cartoonize(imgMat);
+                    imgMatResult = ImageEffect.cartoonEdge(imgMat);
                     // Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
+                    imgResult = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(imgMatResult, imgResult);
                 }
                 UI.imageView.setImageBitmap(imgResult);
-            break;
+                break;
 
             case R.id.btnRGB:
                 image = imgResult;
                 UI.viewAnimator.showNext();
                 //UI.textView.setText(UI.seekBarR.getProgress());
                 break;
-            case  R.id.btnEnhance:
-                image = imgResult;
-                imgResult = ImageEffect.Enhancement(image);
+            case R.id.btnEnhance:
+                if(opencvEnable) {
+                    image = imgResult;
+                    // imgResult = ImageEffect.Enhancement(image);
+                    Mat imgMat = new Mat();
+                    Mat imgMatResult = new Mat();
+
+                    Utils.bitmapToMat(image, imgMat);
+                    imgMatResult = ImageEffect.detailEnhance(imgMat);
+                    Utils.matToBitmap(imgMatResult, imgResult);
+                }
                 UI.imageView.setImageBitmap(imgResult);
                 break;
             case R.id.btnGray:
                 image = imgResult;
-                if(opencvEnable){
+                if (opencvEnable) {
                     Mat imgMat = new Mat();
                     Mat imgMatResult = new Mat();
                     Utils.bitmapToMat(image, imgMat);
@@ -188,23 +202,25 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     @Override
     /*取得並顯示照片*/
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == 0)
-        {
+        if (resultCode == RESULT_OK && requestCode == 0) {
             //用URI取得相簿中的影像
-             Uri uri = data.getData();
-             ContentResolver cr = this.getContentResolver();
-
-             try {//讀取照片，型態為Bitmap
-                 image = BitmapFactory.decodeStream(cr.openInputStream(uri));
-             }
-             catch (FileNotFoundException e)
-             {
-             }
-
+            Uri uri = data.getData();
+            ContentResolver cr = this.getContentResolver();
+            try {//讀取照片，型態為Bitmap
+                image = BitmapFactory.decodeStream(cr.openInputStream(uri));
+            } catch (FileNotFoundException e) {
+            }
+            // resize
+            int width = image.getWidth();
+            int height = image.getHeight();
+            if (width > 630 || height > 1120) {
+                float scale = (width > height) ? width / 630 : height / 1120;
+                image = ImageTransform.resize(image, scale);
+            }
+            imgOrig = image.copy(Bitmap.Config.ARGB_8888, true);
             UI.imageView.setImageBitmap(image);
             imgResult = image;
         }
-
         super.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -212,22 +228,21 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.i("OpenCV", "OpenCV loaded successfully");
                     opencvEnable = true;
-                } break;
-                default:
-                {
+                }
+                break;
+                default: {
                     super.onManagerConnected(status);
-                } break;
+                }
+                break;
             }
         }
     };
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
