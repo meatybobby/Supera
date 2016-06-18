@@ -16,19 +16,21 @@ import android.widget.ViewAnimator;
 public class FuncUI {
     public ImageView imageView;
     public Button button, btnCanny, btnBlur, btnRGB, btnEnhance, btnGray;
+    public Button btnMosaic;
     public TextView textView;
     public ViewAnimator viewAnimator;
     public SeekBar seekBarR, seekBarG, seekBarB;
 
     public FuncUI(Activity activity){
+        button = (Button)activity.findViewById(R.id.button);
         imageView = (ImageView)activity.findViewById(R.id.imageView);
         textView = (TextView)activity.findViewById(R.id.textView);
-        //button = (Button)activity.findViewById(R.id.button);
         btnBlur = (Button)activity.findViewById(R.id.btnBlur);
         btnCanny = (Button)activity.findViewById(R.id.btnCanny);
         btnRGB = (Button)activity.findViewById(R.id.btnRGB);
         btnEnhance = (Button)activity.findViewById(R.id.btnEnhance);
         btnGray = (Button)activity.findViewById(R.id.btnGray);
+        btnMosaic = (Button)activity.findViewById(R.id.btnMosaic);
         viewAnimator = (ViewAnimator)activity.findViewById(R.id.viewAnimator);
         seekBarR = (SeekBar)activity.findViewById(R.id.seekBarR);
         seekBarG = (SeekBar)activity.findViewById(R.id.seekBarG);
@@ -36,12 +38,13 @@ public class FuncUI {
     }
 
     public void setToOnClickListener(View.OnClickListener listener) {
-        //button.setOnClickListener(listener);
+        button.setOnClickListener(listener);
         btnBlur.setOnClickListener(listener);
         btnCanny.setOnClickListener(listener);
         btnRGB.setOnClickListener(listener);
         btnEnhance.setOnClickListener(listener);
         btnGray.setOnClickListener(listener);
+        btnMosaic.setOnClickListener(listener);
     }
 
 }

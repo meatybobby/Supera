@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -20,7 +21,11 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
@@ -29,7 +34,11 @@ import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static org.opencv.imgproc.Imgproc.COLOR_RGBA2RGB;
+import static org.opencv.imgproc.Imgproc.CV_RGBA2mRGBA;
+import static org.opencv.imgproc.Imgproc.circle;
 import static org.opencv.imgproc.Imgproc.cvtColor;
+import static org.opencv.imgproc.Imgproc.ellipse;
 
 public class PictureActivity extends Activity implements View.OnClickListener {
     private FuncUI UI;
@@ -123,36 +132,12 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
 
+            /*Using openCV*/
             case R.id.btnCanny:
                 UI.textView.setText("Start!");
-                /*BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-                    @Override
-                    public void onManagerConnected(int status) {
-                        switch (status) {
-                            case LoaderCallbackInterface.SUCCESS:
-                            {
-                                Log.i("OpenCV", "OpenCV loaded successfully");
-                                Mat imgMat = new Mat();
-                                Mat imgMatResult = new Mat();
 
-                                image = imgResult;
-                                Utils.bitmapToMat(image, imgMat);
+                //Imgproc.adaptiveThreshold(imgMat,imgMatResult,255,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY,11,2);
 
-                                Imgproc.Canny(imgMat,imgMatResult,123,250);
-                                Utils.matToBitmap(imgMatResult, imgResult);
-                                //Imgproc.adaptiveThreshold(imgMat,imgMatResult,255,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY,11,2);
-                                //cvtColor(imgMat, image, CV_BGR2GRAY);
-                            } break;
-                            default:
-                            {
-                                super.onManagerConnected(status);
-                            } break;
-                        }
-                    }
-
-                };
-                opencvLoader(mLoaderCallback);
-                UI.textView.setText("Finish><");*/
                 if(opencvEnable){
                     Mat imgMat = new Mat();
                     Mat imgMatResult = new Mat();
@@ -179,16 +164,33 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                 UI.imageView.setImageBitmap(imgResult);
 
             break;
+            case R.id.button:
+                if(opencvEnable) {
+                    Mat imgMat = new Mat();
+                    Mat imgMatResult = new Mat();
+                    image = imgResult;
+                    Utils.bitmapToMat(image, imgMat);
+                    Log.i("tzutzu", "imgMat type = "+ imgMat.type() );
 
+                    Point p = new Point(imgMat.cols()/2, imgMat.rows()/2);
+                    Mat dark = new Mat(imgMat.rows(), imgMat.cols(), imgMat.type()/*CvType.CV_32FC4*/, new Scalar(50,50,50));
+                    //Imgproc.cvtColor(dark, dark, Imgproc.COLOR_BGR2BGRA);
+                    //dark.convertTo(dark, CvType.CV_8UC4);
+                    //circle(dark, p, imgMat.cols()/2, new Scalar(255,255,255), -1);
+                    Size axes = new Size(imgMat.cols()/2, imgMat.rows()/2);
+                    ellipse(dark, p, axes, 0, 0, 360, new Scalar(255,255,255), -1);
+                    Log.i("tzutzu", "dark type QQ= "+ dark.type() );
+                    Utils.matToBitmap(dark, imgResult);
+                }
+                UI.imageView.setImageBitmap(imgResult);
+
+                break;
+
+            /*Implement*/
             case R.id.btnRGB:
                 image = imgResult;
                 UI.viewAnimator.showNext();
                 //UI.textView.setText(UI.seekBarR.getProgress());
-                break;
-            case  R.id.btnEnhance:
-                image = imgResult;
-                imgResult = ImageEffect.Enhancement(image);
-                UI.imageView.setImageBitmap(imgResult);
                 break;
             case R.id.btnGray:
                 image = imgResult;
@@ -201,6 +203,17 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                 }
                 UI.imageView.setImageBitmap(imgResult);
                 break;
+            case  R.id.btnEnhance:
+                image = imgResult;
+                imgResult = ImageEffect.Enhancement(image);
+                UI.imageView.setImageBitmap(imgResult);
+                break;
+            case R.id.btnMosaic:
+                image = imgResult;
+                imgResult = ImageEffect.Mosaic(image);
+                UI.imageView.setImageBitmap(imgResult);
+                break;
+
         }
     }
 

@@ -2,6 +2,10 @@ package nthu.bobby.supera;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.util.Log;
+
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 /**
  * Created by gatto on 2016/6/17.
@@ -33,9 +37,9 @@ public class ImageEffect {
         Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
 
         int A, R=0, G=0, B=0;
-        int pixel;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        int x, y, pixel;
+        for (x = 0; x < width; x++) {
+            for (y = 0; y < height; y++) {
                 pixel = src.getPixel(x, y);
                 //set the new value
                 A = Color.alpha(pixel);
@@ -55,4 +59,37 @@ public class ImageEffect {
 
         return result;
     }
+
+    public static Bitmap Mosaic(Bitmap src){
+        int width = src.getWidth();
+        int height = src.getHeight();
+        Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
+
+        int M = (width<height)? width/30 : height/30;
+        result = ImageTransform.resize( ImageTransform.resize(src, M), (float) 1/M);
+        return result;
+    }
+
 }
+/* Masaic
+    Bitmap result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+    int M = (width<height)? width/20 : height/20;
+        int M = 20;
+        int x, y, i, j;
+        int tmpR, tmpG, tmpB;
+        for(x=M; x<width; x+=M){
+            for(y=M; y<height; y+=M){
+                tmpR = Color.red(src.getPixel(x-M/2, y-M/2));
+                tmpG = Color.green(src.getPixel(x-M/2, y-M/2));
+                tmpB = Color.blue(src.getPixel(x-M/2, y-M/2));
+
+                for(i=x-M; i<x; i++){
+                    for(j=y-M; j<y; j++){
+                        if(i==x-M && j==y-M) Log.i("Tzu" ,tmpR+" Orig");
+                        result.setPixel(i,j,Color.argb(1,tmpR,tmpG,tmpB));
+                        if(i==x-M && j==y-M) Log.i("Tzu" ,Color.red(result.getPixel(i, j))+"");
+                    }
+                }
+            }
+        }*/
