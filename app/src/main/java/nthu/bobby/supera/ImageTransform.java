@@ -57,6 +57,24 @@ public class ImageTransform {
 
         return output;
     }
+    public static Bitmap getCroppedRec(Bitmap src, float L, float T, float R, float B) {
+        Bitmap output = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+
+        final int color = 0xff424242;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, src.getWidth(), src.getHeight());
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+
+        canvas.drawRect( L, T, R, B, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(src, rect, rect, paint);
+
+        return output;
+    }
 
     /*
     Usage: to let the background image be overlaid with the source image.

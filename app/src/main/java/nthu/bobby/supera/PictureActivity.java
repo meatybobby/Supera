@@ -80,52 +80,47 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 
 
         UI.seekBarR.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 //UI.textView.setText("pr = " + progress);
                 Red = progress;
             }
-            @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
-            @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                imgResult = ImageEffect.changeRGB(image, Red, Green, Blue);
-                UI.imageView.setImageBitmap(imgResult);
+                seekBarAction(image);
             }
         });
 
         UI.seekBarG.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Green = progress;
             }
-            @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
-            @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                imgResult = ImageEffect.changeRGB(image, Red, Green, Blue);
-                UI.imageView.setImageBitmap(imgResult);
+                seekBarAction(image);
             }
         });
         UI.seekBarB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Blue = progress;
             }
-            @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
-            @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                imgResult = ImageEffect.changeRGB(image, Red, Green, Blue);
-                UI.imageView.setImageBitmap(imgResult);
+                seekBarAction(image);
             }
         });
 
     }
-
+    void seekBarAction(Bitmap image){
+        Mat imgMat = new Mat();
+        Utils.bitmapToMat(image, imgMat);
+        imgMat = ImageEffect.setRGB(imgMat, Red, Green, Blue);
+        //imgMat = ImageEffect.HSV();
+        Utils.matToBitmap(imgMat, imgResult);
+        UI.imageView.setImageBitmap(imgResult);
+    }
     @Override
     public void onClick(View v) {
         if(opencvEnable) {
@@ -145,45 +140,55 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 
                 case R.id.btnLomo:
-                    imgMat = ImageEffect.darkMask(imgMat);
-                    imgMatResult = ImageEffect.HSV(imgMat,0,1.3,-10);
-                    //imgMatResult = ImageEffect.changeRGB(imgMatResult,3,7,11);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+                    /*imgMat = ImageEffect.darkMask(imgMat);
+                    imgMatResult = ImageEffect.HSV(imgMat,-3,1.5,0);
+                    imgMatResult = ImageEffect.setRGB(imgMatResult,-5,5,10);
+                    Utils.matToBitmap(imgMatResult, imgResult);*/
+                    /* Cat Ears
+                    FaceProcessor.Init(this);
+                    Bitmap catEar = BitmapFactory.decodeResource(getResources(),R.drawable.catear);
+                    imgResult = FaceProcessor.drawCatEar(image, catEar);*/
+
+                    /*FaceProcessor.Init(this);
+                    Bitmap nose = BitmapFactory.decodeResource(getResources(),R.drawable.nose);
+                    imgResult = FaceProcessor.drawNose(image, nose);*/
+                    FaceProcessor.Init(this);
+                    Bitmap blush = BitmapFactory.decodeResource(getResources(),R.drawable.blush);
+                    imgResult = FaceProcessor.drawBlush(image, blush);
                     break;
 
                 case R.id.btnOld:
                     imgMat = ImageEffect.darkMask(imgMat);
                     imgMatResult = ImageEffect.HSV(imgMat, 0, 0.8, 10);
+                    imgMatResult = ImageEffect.setRGB(imgMatResult, 5,-5,-5);
                     Utils.matToBitmap(imgMatResult, imgResult);
-                    imgResult = ImageEffect.changeRGB(imgResult, 5, -5, -5);
                     break;
 
                 case R.id.btnRed:
-                    //imgMatResult = ImageEffect.HSV(imgMat,0,-100,0);
-                    imgMatResult = ImageEffect.HSV(imgMat, 0, 1.5, 0);
-                    Utils.matToBitmap(imgMatResult, imgResult);
-                    //imgResult = ImageEffect.changeRGB(imgResult,20,0,0);
-
+                    FaceProcessor.Init(this);
+                    //imgResult = FaceProcessor.drawEyes(image);
+                    Bitmap mustache = BitmapFactory.decodeResource(getResources(),R.drawable.mustache);
+                    imgResult = FaceProcessor.drawMustache(image, mustache);
+                    //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
                 case R.id.btnGreen:
-                    //imgMatResult = ImageEffect.HSV(imgMat, 0, -100, 10);
-                    Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
-                    Utils.matToBitmap(imgMatResult, imgResult);
-                    imgResult = ImageEffect.changeRGB(imgResult, 0, 15, 0);
+                    FaceProcessor.Init(this);
+                    imgResult = FaceProcessor.drawPoints(image);
+                    //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
 
                 case R.id.btnBlue:
-                    //imgMatResult = ImageEffect.HSV(imgMat, 0, -100, 10);
-                    Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
-                    Utils.matToBitmap(imgMatResult, imgResult);
-                    imgResult = ImageEffect.changeRGB(imgResult, 0, 0, 15);
+                    FaceProcessor.Init(this);
+                    imgResult = FaceProcessor.drawEyesMosaic(image);
+                    //Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
+                    //imgMatResult = ImageEffect.setRGB(imgMatResult, 0, 0, 18);
+                    //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
 
                 case R.id.btnEdge:
                     //Imgproc.Canny(imgMat,imgMatResult,123,250);
                     imgMatResult = ImageEffect.darkMask(imgMat);
                     Utils.matToBitmap(imgMatResult, imgResult);
-                    //imgResult = ImageEffect.Brighten(image,2.2,10);
                     break;
 
                 case R.id.btnBlur:

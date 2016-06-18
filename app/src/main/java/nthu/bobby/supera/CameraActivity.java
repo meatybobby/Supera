@@ -65,6 +65,7 @@ public class CameraActivity extends Activity implements CameraBridgeViewBase.CvC
     {
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+        FaceProcessor.Init(this);
     }
 
     public void onDestroy() {
@@ -112,10 +113,12 @@ public class CameraActivity extends Activity implements CameraBridgeViewBase.CvC
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat mRgba = inputFrame.rgba();
-        //Bitmap bmp = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
+        Bitmap bmp = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
+        //bmp = FaceProcessor.drawEyes(bmp);
+
         //Utils.matToBitmap(mRgba,bmp);
         //Utils.bitmapToMat(FaceProcessor.drawEyes(bmp),mRgba);
-        return ImageEffect.getEdge(mRgba);
+        return mRgba;
     }
 
 }
