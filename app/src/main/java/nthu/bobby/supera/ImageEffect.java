@@ -12,6 +12,8 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.nio.IntBuffer;
+
 import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C;
 import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
 import static org.opencv.imgproc.Imgproc.COLOR_GRAY2RGB;
@@ -99,13 +101,23 @@ public class ImageEffect {
     }
 
     private static Mat dodge(Mat img,Mat mask) {
-        Mat maskC = new Mat();
-        Core.bitwise_not(mask,maskC);
-        Mat result = new Mat();
-        Log.d("Debug","BD");
-        // Core.divide(img,maskC,result,256);
-        Log.d("Debug","AD");
+        /*Mat maskC = new Mat();
+        Core.bitwise_not(mask,maskC);*/
+        Mat result = new Mat(img.rows(),img.cols(),img.type());
+        byte[] imgValue = new byte[(int) (img.total()*img.channels())];
+        byte[] maskValue = new byte[(int)(mask.total()*mask.channels())];
+        byte[] resultValue = new byte[(int)(mask.total()*mask.channels())];
+        img.get(0,0,imgValue);
+        mask.get(0,0,maskValue);
+        for(int i = 0;i<imgValue.length;i++) {
+            resultValue[i] = (byte) dodgeDouble(imgValue[i] & 0xFF,maskValue[i] & 0xFF);
+        }
+        result.put(0,0,resultValue);
         return result;
+    }
+
+    private static double dodgeDouble(int x,int y) {
+        return ((y==255)? y:Math.min(255,((long)x<<8)/(255-y)));
     }
 
     private static Mat burn(Mat img,Mat mask) {
