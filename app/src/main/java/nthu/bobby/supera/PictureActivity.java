@@ -11,12 +11,13 @@ import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -31,14 +32,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.Callable;
-
-import static org.opencv.imgproc.Imgproc.COLOR_GRAY2RGB;
-import static org.opencv.imgproc.Imgproc.COLOR_RGBA2RGB;
-import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class PictureActivity extends Activity implements View.OnClickListener {
     private FuncUI UI;
@@ -47,6 +42,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     public ImageButton btnConfirm, btnCancel;
     public double window_W, window_H;
     private String mode;
+    private boolean noSeekBar;
 
     void opencvLoader(BaseLoaderCallback mLoaderCallback) {
         if (!OpenCVLoader.initDebug()) {
@@ -71,11 +67,12 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         window_W = metrics.widthPixels;
         window_H = metrics.heightPixels;
-        mode = "none";
+		FaceProcessor.Init(this);
+		mode = "none";
 
         Bundle bundle = getIntent().getExtras();
-        String path = bundle.getString("path");
-        if (path != null) {
+        if(bundle != null) {
+            String path = bundle.getString("path");
             getPictureFromPath(path);
         } else {
         /*開啟相簿*/
@@ -101,6 +98,34 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             }
         });
 
+        UI.btnApply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imgCurrent =  imgShow.copy(Bitmap.Config.ARGB_8888, true);
+                if(!noSeekBar) {
+                    UI.viewAnimator.showNext();
+                }
+                UI.statusBar.showNext();
+            }
+        });
+        UI.btnDiscard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imgShow =  imgCurrent;
+                if(!noSeekBar) {
+                    UI.viewAnimator.showNext();
+                }
+                UI.statusBar.showNext();
+                UI.imageView.setImageBitmap(imgShow);
+            }
+        });
+        UI.btnFaceDec.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UI.faceMenu.showNext();
+            }
+        });
+
         UI.effectSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -118,11 +143,16 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         });
     }
 
-    private void seekBarMotion(int score) {
-        if (opencvEnable) {
+    private void seekBarMotion(int score){
+        if(opencvEnable) {
+            score = score*2-100;
+            String status = mode + " " + score;
+            UI.effectView.setText(status);
+
             Mat imgMat = new Mat();
             Mat imgMatResult = new Mat();
             Utils.bitmapToMat(imgCurrent, imgMat);
+            boolean bitmap = false;
 
             switch (mode) {
                 case "lomo":
@@ -131,119 +161,154 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(imgMatResult, imgShow);
                     break;
-                case "cartoon":
+                case "Cartoon Style":
                     imgMatResult = ImageEffect.cartoonEdge(imgMat);
-                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgShow);
                     break;
-                case "old":
-                    imgMatResult = ImageEffect.oldEffect(imgMat);
-                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgShow);
-                    break;
-                case "edge":
+                case "Edge Detect":
                     imgMatResult = ImageEffect.getEdge(imgMat);
-                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgShow);
                     break;
-                case "blur":
+                case "Blur":
                     imgMatResult = ImageEffect.cartoonize(imgMat);
                     // Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
-                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgShow);
                     break;
-                case "pencil":
+                case "Pencil":
                     imgMatResult = ImageEffect.pencil(imgMat);
-                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgShow);
                     break;
-                case "enhance":
-                    //imgShow = ImageEffect.Enhancement(imgCurrent);
+                case "LOMO":
+                    score = (score+100)/2;
+                    imgMatResult = ImageEffect.lomo(imgMat, 1-score/100f);
                     break;
-                case "gray":
-                    Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
-                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgShow);
+                case "Old Style":
+                    imgMatResult = ImageEffect.oldEffect(imgMat, score/6, score/12, score/10);
                     break;
+                case "Mosaic":
+                    imgShow = ImageEffect.Mosaic(imgCurrent, (int)(score/2+75));
+                    bitmap = true;
+                    break;
+                case "Enhance":
+                    imgMatResult = ImageEffect.Enhancement(imgMat, 1.5f+(score/150f));
+                    break;
+                case "Red":
+                    imgMatResult = ImageEffect.setRGB(imgMat, (int)(score*1.5), 0, 0);
+                    break;
+                case "Green":
+                    imgMatResult = ImageEffect.setRGB(imgMat, 0, (int)(score*1.5), 0);
+                    break;
+                case "Blue":
+                    imgMatResult = ImageEffect.setRGB(imgMat, 0, 0, (int)(score*1.5));
+                    break;
+                case "Hue":
+                    imgMatResult = ImageEffect.HSV(imgMat, (int)(score*0.9f), 1, 0);
+                    break;
+                case "Saturation":
+                    imgMatResult = ImageEffect.HSV(imgMat, 0, 1-(score/100f), 0);
+                    break;
+				case "Cat Ear":
+                    Bitmap catEar = BitmapFactory.decodeResource(getResources(),R.drawable.catear);
+                    imgShow = FaceProcessor.drawCatEar(imgCurrent, catEar);
+					bitmap = true;
+                    break;
+				case "Blush":
+					Bitmap blush = BitmapFactory.decodeResource(getResources(),R.drawable.blush);
+                    imgShow = FaceProcessor.drawBlush(imgCurrent, blush);
+					bitmap = true;
+					break;
+				case "Mustache":
+					Bitmap mustache = BitmapFactory.decodeResource(getResources(),R.drawable.mustache);
+                    imgShow = FaceProcessor.drawMustache(imgCurrent, mustache);
+					bitmap = true;
+					break;
+				case "Nose":
+					Bitmap nose = BitmapFactory.decodeResource(getResources(),R.drawable.nose);
+                    imgShow = FaceProcessor.drawNose(imgCurrent, nose);
+					bitmap = true;
+					break;
+            }
+            if(!bitmap) {
+                imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(imgMatResult, imgShow);
             }
             UI.imageView.setImageBitmap(imgShow);
         }
     }
 
+    private void effectSelect(){
+        if(!noSeekBar) {
+            UI.viewAnimator.showNext();
+        }
+        UI.statusBar.showNext();
+        UI.effectView.setText(mode);
+        UI.effectSeekBar.setProgress(50);
+        seekBarMotion(50);
+    }
+
     @Override
     public void onClick(View v) {
-        if (opencvEnable) {
+        noSeekBar = false;
+        if(opencvEnable) {
             switch (v.getId()) {
                 case R.id.btnOrig:
                     mode = "none";
                     imgShow = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
-                    imgCurrent = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
+					imgCurrent = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
+                    UI.imageView.setImageBitmap(imgShow);
                     break;
 
                 case R.id.btnCartoon:
-                    UI.viewAnimator.showNext();
-                    mode = "cartoon";
+                    mode = "Cartoon Style"; noSeekBar = true;
                     break;
-
+                case R.id.btnEdge:
+                    mode = "Edge Detect"; noSeekBar = true;
+                    break;
+                case R.id.btnBlur:
+                    mode = "Blur"; noSeekBar = true;
+                    break;
+                case R.id.btnPencil:
+                    mode = "Pencil"; noSeekBar = true;
+                    break;
                 case R.id.btnLomo:
-                    UI.viewAnimator.showNext();
-                    mode = "lomo";
+					mode = "LOMO";
                     break;
-
                 case R.id.btnOld:
-                    UI.viewAnimator.showNext();
-                    mode = "old";
+                    mode = "Old Style";
                     break;
-
+                case R.id.btnMosaic:
+                    mode = "Mosaic";
+                    break;
                 case R.id.btnRed:
-                    //imgResult = FaceProcessor.drawEyes(image);
-                    //Bitmap mustache = BitmapFactory.decodeResource(getResources(),R.drawable.mustache);
-                    //imgResult = FaceProcessor.drawMustache(image, mustache);
-                    //Utils.matToBitmap(imgMatResult, imgResult);
+                    mode = "Red";
                     break;
                 case R.id.btnGreen:
-                    //imgResult = FaceProcessor.drawPoints(image);
-                    //Utils.matToBitmap(imgMatResult, imgResult);
+                    mode = "Green";
                     break;
-
                 case R.id.btnBlue:
-                    //imgResult = FaceProcessor.drawEyesMosaic(image);
-                    //Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
-                    //imgMatResult = ImageEffect.setRGB(imgMatResult, 0, 0, 18);
-                    //Utils.matToBitmap(imgMatResult, imgResult);
+                    mode = "Blue";
                     break;
-
-                case R.id.btnEdge:
-                    UI.viewAnimator.showNext();
-                    mode = "edge";
+                case R.id.btnHSV:
+                    mode = "Hue";
                     break;
-
-                case R.id.btnBlur:
-                    UI.viewAnimator.showNext();
-                    mode = "blur";
-                    break;
-
-                case R.id.btnRGB:
-                    UI.viewAnimator.showNext();
-                    //UI.textView.setText(UI.seekBarR.getProgress());
-                    break;
-
                 case R.id.btnEnhance:
-                    UI.viewAnimator.showNext();
-                    mode = "enhance";
+					mode = "Enhance";
                     break;
-
-                case R.id.btnPencil:
-                    UI.viewAnimator.showNext();
-                    mode = "pencil";
-                    break;
-
                 case R.id.btnGray:
-                    UI.viewAnimator.showNext();
-                    mode = "gray";
+                    mode = "Saturation";
+                    break;
+				case R.id.btn_catear:
+                    mode = "Cat Ear"; noSeekBar = true;
+                    break;
+				case R.id.btn_blush:
+                    mode = "Blush"; noSeekBar = true;
+                    break;
+				case R.id.btn_mustache:
+                    mode = "Mustache"; noSeekBar = true;
+                    break;
+				case R.id.btn_nose:
+                    mode = "Nose"; noSeekBar = true;
                     break;
             }
-            UI.imageView.setImageBitmap(imgShow);
+            if(!mode.equals("none")) {
+                effectSelect();
+            }
         }
     }
 
@@ -305,8 +370,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         String imgPath = mediaStorageDir + "IMG_" + timeStamp + ".jpg";
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(imgPath);
-            imgShow.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
+            imgCurrent.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
             fileOutputStream.close();
+            Log.i("path", imgPath);
+            Toast.makeText(getApplication(), "Picture saved.\n"+imgPath, Toast.LENGTH_LONG).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
