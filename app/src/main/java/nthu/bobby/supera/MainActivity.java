@@ -59,8 +59,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
     private boolean indraw = false;
     private int drawWidth, drawHeight;
     public ImageButton btnCamera, btnAlbum, btnEffects;
-    public Button btn_previewNone,  btn_previewBlur, btn_previewEdge;
-    public ImageButton btn_previewPencil;
+    public Button btn_previewNone, btn_previewCartoon, btn_previewPencil, btn_previewBlur;
+    public Button btn_previewEdge, btn_previewMosaic, btn_previewOld;
     public ViewAnimator previewAnimator;
     private String previewMode;
 
@@ -86,9 +86,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         btnEffects = (ImageButton) findViewById(R.id.btnEffects);
 
         btn_previewNone = (Button) findViewById(R.id.btn_previewNone);
-        btn_previewPencil = (ImageButton) findViewById(R.id.btn_previewPencil);
+        btn_previewCartoon = (Button) findViewById(R.id.btn_previewCartoon);
+        btn_previewPencil = (Button) findViewById(R.id.btn_previewPencil);
         btn_previewBlur = (Button) findViewById(R.id.btn_previewBlur);
         btn_previewEdge = (Button) findViewById(R.id.btn_previewEdge);
+        btn_previewMosaic = (Button) findViewById(R.id.btn_previewMosaic);
+        btn_previewOld = (Button) findViewById(R.id.btn_previewOld);
 
         btnAlbum.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,6 +119,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
                 previewMode = "none";
             }
         });
+        btn_previewCartoon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                previewAnimator.showNext();
+                previewMode = "cartoon";
+            }
+        });
         btn_previewPencil.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,6 +145,20 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
             public void onClick(View v) {
                 previewAnimator.showNext();
                 previewMode = "edge";
+            }
+        });
+        btn_previewMosaic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                previewAnimator.showNext();
+                previewMode = "mosaic";
+            }
+        });
+        btn_previewOld.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                previewAnimator.showNext();
+                previewMode = "old";
             }
         });
     }
@@ -188,6 +212,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
             switch (previewMode) {
                 case "none":
                     break;
+                case "cartoon":
+                    img = ImageEffect.cartoonEdge(img);
+                    break;
                 case "blur":
                     img = ImageEffect.cartoonize(img);
                     break;
@@ -197,9 +224,18 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
                 case "pencil":
                     img = ImageEffect.pencil(img);
                     break;
+                case "mosaic":
+                    image = ImageEffect.Mosaic(image, 70);
+                    break;
+                case "old":
+                    img = ImageEffect.oldEffect(img, 0, 0, 0);
+                    break;
             }
-            image = Bitmap.createBitmap(img.width(),img.height(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(img,image);
+            if(!previewMode.equals("mosaic")){
+                image = Bitmap.createBitmap(img.width(),img.height(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(img,image);
+            }
+
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(imgPath);
                 image.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
@@ -288,6 +324,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
                     switch (previewMode) {
                         case "none":
                             break;
+                        case "cartoon":
+                            mRotated = ImageEffect.cartoonEdge(mRotated);
+                            break;
                         case "pencil":
                             mRotated = ImageEffect.pencil(mRotated);
                             break;
@@ -297,11 +336,17 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
                         case "edge":
                             mRotated = ImageEffect.getEdge(mRotated);
                             break;
+                        case "old":
+                            mRotated = ImageEffect.oldEffect(mRotated, 0, 0, 0);
+                            break;
                     }
                     img = new Mat(drawWidth, drawHeight, mRotated.type());
                     Imgproc.resize(mRotated, img, new Size(drawWidth, drawHeight));
                     bitmap = Bitmap.createBitmap(img.width(), img.height(), Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(img, bitmap);
+                    if(previewMode.equals("mosaic")){
+                        bitmap = ImageEffect.Mosaic(bitmap, 70);
+                    }
                     canvas.drawBitmap(bitmap, 0, 0, null);
                 }
                 camera.addCallbackBuffer(data);

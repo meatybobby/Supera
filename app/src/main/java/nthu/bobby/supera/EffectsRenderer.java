@@ -81,6 +81,15 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
             case "doc":
                 documentaryEffect(factory);
                 break;
+            case "feye":
+                fisheyeEffect(factory);
+                break;
+            case "flight":
+                filllightEffect(factory);
+                break;
+            case "grain":
+                grainEffect(factory);
+                break;
             default:
         }
 
