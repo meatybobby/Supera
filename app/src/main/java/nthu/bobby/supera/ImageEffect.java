@@ -33,6 +33,41 @@ import static org.opencv.imgproc.Imgproc.ellipse;
  * Created by gatto on 2016/6/17.
  */
 public class ImageEffect {
+
+    public static Mat lomo(Mat src, float scale){
+        Mat result = new Mat();
+        result = darkMask(src, scale);
+        result = HSV(result,0,1.3,-10);
+        return result;
+    }
+
+    public static Mat oldEffect(Mat src) {
+        Mat result = new Mat(src.rows(),src.cols(),src.type());
+        // result = HSV(src, 0, 0.8, 10);
+        // result = setRGB(result, 45, -45, -45);
+        int channel = src.channels();
+        byte[] Value = new byte[(int) (src.total()*src.channels())];
+        src.get(0,0,Value);
+        int srcR, srcG, srcB;
+        int dstR, dstG, dstB;
+        for(int i = 0;i<Value.length;i+=channel) {
+            srcR = Value[i]&0xFF;
+            srcG = Value[i+1]&0xF3;
+            srcB = Value[i+2]&0xFF;
+            dstR = (int) (0.393 * srcR + 0.769 * srcG + 0.189 * srcB);
+            dstG = (int) (0.349 * srcR + 0.686 * srcG + 0.168 * srcB);
+            dstB = (int) (0.272 * srcR + 0.534 * srcG + 0.131 * srcB);
+            if(dstR>255) dstR=255;
+            if(dstG>255) dstG=255;
+            if(dstB>255) dstB=255;
+            Value[i] = (byte)dstR;
+            Value[i+1] = (byte)dstG;
+            Value[i+2] = (byte)dstB;
+        }
+        result.put(0,0,Value);
+        return result;
+    }
+
     public static Mat setRGB(Mat src, int R, int G, int B){
         byte[] Value = new byte[(int) (src.total()*src.channels())];
         src.get(0,0,Value);
@@ -56,25 +91,6 @@ public class ImageEffect {
         return src;
     }
 
-    public static Bitmap Brighten(Bitmap src, double alpha,int beta){
-        int width = src.getWidth();
-        int height = src.getHeight();
-        Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
-
-        int x, y, srcR, srcG, srcB;
-        for(x=0; x<width; x++){
-            for(y=0; y<height; y++){
-                srcR = (int)alpha * Color.red(src.getPixel(x, y)) + beta;
-                srcG = (int)alpha * Color.green(src.getPixel(x, y)) + beta;
-                srcB = (int)alpha * Color.blue(src.getPixel(x, y)) + beta;
-                if(srcR>255) srcR=255;
-                if(srcG>255) srcG=255;
-                if(srcB>255) srcB=255;
-                result.setPixel(x, y, Color.argb(1, srcR, srcG, srcB));
-            }
-        }
-        return result;
-    }
     public static Mat setConBri(Mat src, double con, int bir){
         byte[] Value = new byte[(int) (src.total()*src.channels())];
         src.get(0,0,Value);
@@ -126,7 +142,6 @@ public class ImageEffect {
                 result.setPixel(x, y, Color.argb(A, R, G, B));
             }
         }
-
         return result;
     }
 
@@ -215,15 +230,15 @@ public class ImageEffect {
         return result;
     }
 
-    public static Mat darkMask(Mat imgMat){
+    public static Mat darkMask(Mat imgMat, float scale){
         Mat imgMatResult = new Mat();
         Point p = new Point(imgMat.cols()/2, imgMat.rows()/2);
-        Mat dark = new Mat(imgMat.rows(), imgMat.cols(), CvType.CV_32FC4, new Scalar(0.4,0.4,0.4));
+        Mat dark = new Mat(imgMat.rows(), imgMat.cols(), CvType.CV_32FC4, new Scalar(0.4, 0.4, 0.4));
 
-        Size axes = new Size(imgMat.cols()/2.1, imgMat.rows()/2.1);
+        Size axes = new Size(imgMat.cols()*scale, imgMat.rows()*scale);
         ellipse(dark, p, axes, 0, 0, 360, new Scalar(1,1,1), -1);
         //Imgproc.GaussianBlur(dark, dark, new Size(33,33), 19, 19);
-        Imgproc.blur(dark,dark, new Size(51,51));
+        Imgproc.blur(dark, dark, new Size(51,51));
         imgMat.convertTo(imgMat, CvType.CV_32FC4);
         imgMatResult = dark.mul(imgMat);
         imgMatResult.convertTo(imgMatResult, CvType.CV_8UC4);
