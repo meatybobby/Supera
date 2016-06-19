@@ -18,8 +18,10 @@ public class TextureRenderer {
     private FloatBuffer mPosVertices;
     private int mViewWidth;
     private int mViewHeight;
-    private int mTexWidth;
-    private int mTexHeight;
+    public int mTexWidth;
+    public int mTexHeight;
+    public int originX;
+    public int originY;
     private static final String VERTEX_SHADER =
             "attribute vec4 a_position;\n" +
                     "attribute vec2 a_texcoord;\n" +
@@ -66,6 +68,8 @@ public class TextureRenderer {
     public void updateTextureSize(int texWidth, int texHeight) {
         mTexWidth = texWidth;
         mTexHeight = texHeight;
+        originX = (texWidth - texHeight) / 2;
+        originY = (texWidth - texHeight) / 2;
         computeOutputVertices();
     }
     public void updateViewSize(int viewWidth, int viewHeight) {

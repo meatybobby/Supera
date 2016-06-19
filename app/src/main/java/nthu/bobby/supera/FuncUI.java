@@ -16,7 +16,7 @@ public class FuncUI {
     public ImageView imageView;
     public Button btnEdge, btnBlur, btnHSV, btnEnhance, btnGray;
     public Button btnRed, btnBlue, btnGreen, btnOld, btnMosaic;
-    public Button btnCartoon, btnPencil, btnLomo;
+    public Button btnCartoon, btnPencil, btnLomo, btnDetail;
     public ImageButton btnFaceDec, btn_catear, btn_blush, btn_mustache, btn_nose;
 	public ImageButton btnApply, btnDiscard;
     public ImageButton btnOrig;
@@ -50,6 +50,7 @@ public class FuncUI {
         btnCartoon = (Button)activity.findViewById(R.id.btnCartoon);
         btnPencil = (Button)activity.findViewById(R.id.btnPencil);
         btnLomo = (Button)activity.findViewById(R.id.btnLomo);
+        btnDetail = (Button) activity.findViewById(R.id.btnDetail);
 
         viewAnimator = (ViewAnimator)activity.findViewById(R.id.viewAnimator);
         statusBar = (ViewAnimator)activity.findViewById(R.id.statusBar);
@@ -76,6 +77,7 @@ public class FuncUI {
         btn_blush.setOnClickListener(listener);
         btn_mustache.setOnClickListener(listener);
         btn_nose.setOnClickListener(listener);
+        btnDetail.setOnClickListener(listener);
     }
 
 }

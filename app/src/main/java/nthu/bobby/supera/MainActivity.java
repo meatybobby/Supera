@@ -140,7 +140,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
 
     public void onPause() {
         super.onPause();
-        camera.stopPreview();
+        if(camera != null) camera.stopPreview();
     }
 
     @Override
@@ -204,6 +204,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
                 image.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
                 fileOutputStream.close();
                 Log.i("Supera", "Save picture to " + imgPath);
+                Toast.makeText(getApplication(), "Picture saved.\n"+imgPath, Toast.LENGTH_LONG).show();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -240,6 +241,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
                     break;
                 }
             }
+            List<Camera.Size> pictureSize = camera.getParameters().getSupportedPictureSizes();
+            Camera.Size s = pictureSize.get(0);
+            Log.i("QQ","Picture set" + s.width+","+s.height);
+            parameters.setPictureSize(s.width,s.height);
             camera.setParameters(parameters);
             camera.setPreviewCallback(this);
             viewHeight = parameters.getPreviewSize().height;
@@ -251,7 +256,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
             int frame_size = ((viewWidth * viewHeight) * bitsperpixel) / 8;
             initRender(frame_size);
             previewing = true;
-            Log.d("Supera", "Preview width=" + viewWidth + " Preview height=" + viewHeight + ",view width=" + width + " view height" + height);
+            Log.d("QQ", "Preview width=" + viewWidth + " Preview height=" + viewHeight + ",view width=" + width + " view height" + height);
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
         } catch (IOException e) {
             e.printStackTrace();
@@ -260,9 +265,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        camera.stopPreview();
-        camera.release();
-        camera = null;
+        if(camera != null) {
+            camera.stopPreview();
+            camera.release();
+            camera = null;
+        }
         previewing = false;
     }
 
@@ -303,7 +310,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
                     Utils.matToBitmap(img, bitmap);
                     canvas.drawBitmap(bitmap, 0, 0, null);
                 }
-                camera.addCallbackBuffer(data);
                 drawHolder.unlockCanvasAndPost(canvas);
             }
         }

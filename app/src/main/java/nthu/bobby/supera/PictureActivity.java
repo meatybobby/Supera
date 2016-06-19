@@ -155,11 +155,8 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             boolean bitmap = false;
 
             switch (mode) {
-                case "lomo":
-                    //1:1.5, 50:2, 100:15
-                    imgMatResult = ImageEffect.lomo(imgMat, 1 - score / 100f);
-                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgShow);
+                case "Detail":
+                    imgMatResult = ImageEffect.detailEnhance(imgMat);
                     break;
                 case "Cartoon Style":
                     imgMatResult = ImageEffect.cartoonEdge(imgMat);
@@ -186,7 +183,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     bitmap = true;
                     break;
                 case "Enhance":
-                    imgMatResult = ImageEffect.Enhancement(imgMat, 1.5f+(score/150f));
+                    imgMatResult = ImageEffect.Enhancement(imgMat, 1.3f+(score/150f));
                     break;
                 case "Red":
                     imgMatResult = ImageEffect.setRGB(imgMat, (int)(score*1.5), 0, 0);
@@ -254,6 +251,9 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     UI.imageView.setImageBitmap(imgShow);
                     break;
 
+                case R.id.btnDetail:
+                    mode = "Detail"; noSeekBar = true;
+                    break;
                 case R.id.btnCartoon:
                     mode = "Cartoon Style"; noSeekBar = true;
                     break;

@@ -38,6 +38,7 @@ public class ImageEffect {
         Mat result = new Mat();
         result = darkMask(src, scale);
         result = HSV(result, 0, 1.3, -10);
+        result = setRGB(result, 0, 6, 10);
         return result;
     }
 
@@ -68,7 +69,7 @@ public class ImageEffect {
         return result;
     }
 
-    public static Mat setRGB(Mat src, int R, int G, int B){
+    public static Mat setRGB(Mat src, int R, int G, int B) {
         byte[] Value = new byte[(int) (src.total()*src.channels())];
         src.get(0,0,Value);
         int channel = src.channels();
@@ -101,11 +102,11 @@ public class ImageEffect {
             srcR = (int) (Value[i] & 0xFF) ;
             srcG = (int) (Value[i + 1] & 0xFF) ;
             srcB = (int) (Value[i + 2] & 0xFF) ;
-            if (srcR > 100) srcR *= scale;
+            if (srcR > 90) srcR *= scale;
             if (srcR > 255) srcR = 255;
-            if (srcG > 100) srcG *= scale;
+            if (srcG > 90) srcG *= scale;
             if (srcG > 255) srcG = 255;
-            if (srcB > 100) srcB *= scale;
+            if (srcB > 90) srcB *= scale;
             if (srcB > 255) srcB = 255;
             if (srcR < 80) srcR /= scale;
             if (srcG < 80) srcG /= scale;
@@ -186,15 +187,17 @@ public class ImageEffect {
         return result;
     }
 
-    public static Mat darkMask(Mat imgMat, float scale){
-        Mat imgMatResult = new Mat();
-        Point p = new Point(imgMat.cols()/2, imgMat.rows()/2);
-        Mat dark = new Mat(imgMat.rows(), imgMat.cols(), CvType.CV_32FC4, new Scalar(0.4, 0.4, 0.4));
+    public static Mat darkMask(Mat imgMat, float scale) {
+        Mat imgMatResult;
+        float ratio = (float) imgMat.rows() / imgMat.cols();
+        Mat dark = new Mat((int) (250*ratio), 250, CvType.CV_32FC4, new Scalar(0.4, 0.4, 0.4));
+        Point p = new Point(dark.cols()/2, dark.rows()/2);
 
-        Size axes = new Size(imgMat.cols()*scale, imgMat.rows()*scale);
+        Size axes = new Size(dark.cols()*scale, dark.rows()*scale);
         ellipse(dark, p, axes, 0, 0, 360, new Scalar(1,1,1), -1);
         //Imgproc.GaussianBlur(dark, dark, new Size(33,33), 19, 19);
         Imgproc.blur(dark, dark, new Size(51,51));
+        Imgproc.resize(dark,dark,new Size(imgMat.width(),imgMat.height()));
         imgMat.convertTo(imgMat, CvType.CV_32FC4);
         imgMatResult = dark.mul(imgMat);
         imgMatResult.convertTo(imgMatResult, CvType.CV_8UC4);
