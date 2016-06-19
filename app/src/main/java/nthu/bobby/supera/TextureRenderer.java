@@ -1,6 +1,7 @@
 package nthu.bobby.supera;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -18,10 +19,12 @@ public class TextureRenderer {
     private FloatBuffer mPosVertices;
     private int mViewWidth;
     private int mViewHeight;
-    public int mTexWidth;
-    public int mTexHeight;
+    private int mTexWidth;
+    private int mTexHeight;
     public int originX;
     public int originY;
+    public int originWidth;
+    public int originHeight;
     private static final String VERTEX_SHADER =
             "attribute vec4 a_position;\n" +
                     "attribute vec2 a_texcoord;\n" +
@@ -68,8 +71,21 @@ public class TextureRenderer {
     public void updateTextureSize(int texWidth, int texHeight) {
         mTexWidth = texWidth;
         mTexHeight = texHeight;
-        originX = (texWidth - texHeight) / 2;
-        originY = (texWidth - texHeight) / 2;
+        float wRatio = (float)mViewWidth/texWidth;
+        float hRatio = (float)mViewHeight/texHeight;
+        if(texHeight * wRatio > mViewHeight) {
+            originX = (int) ((mViewWidth - texWidth*hRatio) / 2);
+            originY = (int) ((mViewHeight - texHeight*hRatio) / 2);
+            originWidth = (int) (texWidth*hRatio);
+            originHeight = (int) (texHeight*hRatio);
+        }
+        else {
+            originX = (int) ((mViewWidth - texWidth*wRatio) / 2);
+            originY = (int) ((mViewHeight - texHeight*wRatio) / 2);
+            originWidth = (int) (texWidth*wRatio);
+            originHeight = (int) (texHeight*wRatio);
+        }
+        Log.i("QQQQQQ",originX+","+originY);
         computeOutputVertices();
     }
     public void updateViewSize(int viewWidth, int viewHeight) {

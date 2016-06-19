@@ -32,7 +32,6 @@ public class GLActivity extends Activity {
 
         view = (GLSurfaceView) findViewById(R.id.effectsview);
         effect = new EffectsRenderer(this);
-        //mainRender = new MainRender(view);
         view.setEGLContextClientVersion(2);
         view.setRenderer(effect);
         view.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);

@@ -36,9 +36,10 @@ public class ImageEffect {
 
     public static Mat lomo(Mat src, float scale){
         Mat result = new Mat();
-        result = darkMask(src, scale);
-        result = HSV(result, 0, 1.3, -10);
-        result = setRGB(result, 0, 6, 10);
+        result = Enhancement(src, (float) 1.1);
+        result = darkMask(result, scale);
+        result = HSV(result, 0, 1.2, -10);
+        result = setRGB(result, 0, 10, 15);
         return result;
     }
 

@@ -27,6 +27,10 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
 
     private TextureRenderer square;
     private int textures[] = new int[2];
+    private int W, H;
+    public Bitmap map;
+
+    public String type;
 
     public EffectsRenderer(Context context) {
         super();
@@ -34,6 +38,7 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
         photoWidth = photo.getWidth();
         photoHeight = photo.getHeight();
         square = new TextureRenderer();
+        type = "none";
     }
 
     @Override
@@ -55,6 +60,8 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        W = width;
+        H = height;
         GLES20.glViewport(0, 0, width, height);
         GLES20.glClearColor(0, 0, 0, 1);
         generateSquare();
@@ -69,11 +76,19 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
         if (effect != null) {
             effect.release();
         }
+
         EffectFactory factory = effectContext.getFactory();
-        grainEffect(factory);
+        switch(type){
+            case "doc":
+                documentaryEffect(factory);
+                break;
+            default:
+        }
+
         effect.apply(textures[0], photoWidth, photoHeight, textures[1]);
         square.updateTextureSize(photoWidth, photoHeight);
         square.renderTexture(textures[1]);
+        map = createBitmapFromGLSurface(square.originX, square.originY,square.originWidth,square.originHeight);
     }
 
     private void documentaryEffect(EffectFactory factory) {

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.opengl.GLSurfaceView;
 import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -43,6 +44,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     public double window_W, window_H;
     private String mode;
     private boolean noSeekBar;
+    private boolean glViewOn = false;
+
+    private GLSurfaceView view;
+    private EffectsRenderer effect;
 
     void opencvLoader(BaseLoaderCallback mLoaderCallback) {
         if (!OpenCVLoader.initDebug()) {
@@ -58,6 +63,12 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_picture);
+
+        view = (GLSurfaceView) findViewById(R.id.effectsView);
+        effect = new EffectsRenderer(this);
+        view.setEGLContextClientVersion(2);
+        view.setRenderer(effect);
+        view.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         UI = new FuncUI(this);
         UI.setToOnClickListener(this);
@@ -101,11 +112,19 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         UI.btnApply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imgCurrent =  imgShow.copy(Bitmap.Config.ARGB_8888, true);
+                if(!glViewOn) {
+                    imgCurrent =  imgShow.copy(Bitmap.Config.ARGB_8888, true);
+                } else {
+                    imgCurrent = effect.map.copy(Bitmap.Config.ARGB_8888, true);
+                }
+
                 if(!noSeekBar) {
                     UI.viewAnimator.showNext();
                 }
                 UI.statusBar.showNext();
+                UI.imageView.setImageBitmap(imgCurrent);
+                view.setVisibility(View.INVISIBLE);
+                glViewOn = false;
             }
         });
         UI.btnDiscard.setOnClickListener(new View.OnClickListener() {
@@ -116,7 +135,9 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     UI.viewAnimator.showNext();
                 }
                 UI.statusBar.showNext();
-                UI.imageView.setImageBitmap(imgShow);
+                UI.imageView.setImageBitmap(imgCurrent);
+                view.setVisibility(View.INVISIBLE);
+                glViewOn = false;
             }
         });
         UI.btnFaceDec.setOnClickListener(new View.OnClickListener() {
@@ -198,7 +219,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     imgMatResult = ImageEffect.HSV(imgMat, (int)(score*0.9f), 1, 0);
                     break;
                 case "Saturation":
-                    imgMatResult = ImageEffect.HSV(imgMat, 0, 1-(score/100f), 0);
+                    imgMatResult = ImageEffect.HSV(imgMat, 0, score/100f, 0);
                     break;
 				case "Cat Ear":
                     Bitmap catEar = BitmapFactory.decodeResource(getResources(),R.drawable.catear);
@@ -220,6 +241,14 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     imgShow = FaceProcessor.drawNose(imgCurrent, nose);
 					bitmap = true;
 					break;
+                case "Documentary":
+                    glViewOn = true;
+                    effect.setPhoto(imgCurrent);
+                    view.requestRender();
+                    imgShow = effect.map;
+                    view.setVisibility(View.VISIBLE);
+                    bitmap = true;
+                    break;
             }
             if(!bitmap) {
                 imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
@@ -305,6 +334,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 				case R.id.btn_nose:
                     mode = "Nose"; noSeekBar = true;
                     break;
+                case R.id.btnDocumentary:
+                    mode = "Documentary"; noSeekBar = true;
+                    effect.type = "doc";
+                    break;
             }
             if(!mode.equals("none")) {
                 effectSelect();
@@ -323,19 +356,21 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 
             try {//讀取照片，型態為Bitmap
                 imgCurrent = BitmapFactory.decodeStream(cr.openInputStream(uri));
-            } catch (FileNotFoundException e) {
-            }
+                // resize
+                int width = imgCurrent.getWidth();
+                int height = imgCurrent.getHeight();
+                if (width > 630 || height > 1120) {
+                    float scale = (width > height) ? width / 630 : height / 1120;
+                    imgCurrent = ImageTransform.resize(imgCurrent, scale);
+                }
+                effect.setPhoto(imgCurrent);
+                imgOrig = imgCurrent.copy(Bitmap.Config.ARGB_8888, true);
+                UI.imageView.setImageBitmap(imgCurrent);
+                imgShow = imgCurrent;
 
-            // resize
-            int width = imgCurrent.getWidth();
-            int height = imgCurrent.getHeight();
-            if (width > 630 || height > 1120) {
-                float scale = (width > height) ? width / 630 : height / 1120;
-                imgCurrent = ImageTransform.resize(imgCurrent, scale);
+            } catch (FileNotFoundException e) {
+                this.onBackPressed();
             }
-            imgOrig = imgCurrent.copy(Bitmap.Config.ARGB_8888, true);
-            UI.imageView.setImageBitmap(imgCurrent);
-            imgShow = imgCurrent;
         }
 
         super.onActivityResult(requestCode, resultCode, data);
