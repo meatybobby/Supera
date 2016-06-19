@@ -21,34 +21,33 @@
             android:layout_width="fill_parent"
             android:layout_height="match_parent">
 
-            <nthu.bobby.supera.SuperaView
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:visibility="gone"
-                android:id="@+id/java_surface_view"
-                opencv:show_fps="true"
-                opencv:camera_id="any" />
-
-        </RelativeLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="60dp"
-            android:background="#962f2f2f">
-
-            <ImageButton
+            <SurfaceView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/btnAlbum"
-                android:src="@drawable/btn_album_press"
-                android:background="#00ffffff"
-                android:layout_gravity="center_vertical"
-                android:longClickable="true"
-                android:clickable="false"
-                android:layout_margin="5dp" />
+                android:id="@+id/surfaceView"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true" />
 
-        </LinearLayout>
+            <SurfaceView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView"
+                android:layout_alignTop="@+id/surfaceView"
+                android:layout_alignStart="@+id/surfaceView" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnEffects"
+                android:text="Effects"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="#00ffffff"
+                android:textColor="@color/primary_material_light"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true" />
+
+        </RelativeLayout>
 
         <ViewAnimator
             android:layout_width="fill_parent"
@@ -124,17 +123,6 @@
             </RelativeLayout>
         </ViewAnimator>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/btnEffects"
-            android:text="Effects"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:background="#00ffffff"
-            android:textColor="@color/primary_material_light" />
-
         <ImageButton
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -146,5 +134,27 @@
             android:background="#00ffffff"
             android:layout_gravity="center_vertical"/>
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="60dp"
+            android:background="#962f2f2f">
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnAlbum"
+                android:src="@drawable/btn_album_press"
+                android:background="#00ffffff"
+                android:longClickable="true"
+                android:clickable="false"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_alignTop="@+id/btnEffects"
+                android:layout_toEndOf="@+id/java_surface_view"
+                android:layout_marginStart="37dp" />
+        </LinearLayout>
+
     </RelativeLayout>
+
 </RelativeLayout>

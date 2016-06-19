@@ -37,7 +37,9 @@ public class ImageEffect {
     public static Mat lomo(Mat src, float scale){
         Mat result = new Mat();
         result = darkMask(src, scale);
-        result = HSV(result,0,1.3,-10);
+        //result = Enhancement(result);
+        result = setRGB(result, -20, -10, -8);
+        //result.convertTo(result,-1, 1.2,-30);
         return result;
     }
 
@@ -86,29 +88,6 @@ public class ImageEffect {
             Value[i] = (byte) srcR;
             Value[i + 1] = (byte) srcG;
             Value[i + 2] = (byte) srcB;
-        }
-        src.put(0, 0, Value);
-        return src;
-    }
-
-    public static Mat setConBri(Mat src, double con, int bir){
-        byte[] Value = new byte[(int) (src.total()*src.channels())];
-        src.get(0,0,Value);
-        int channel = src.channels();
-        int srcR, srcG, srcB;
-        for (int i = 0; i < Value.length; i += 3) {
-            srcR = (int) con * (Value[i] & 0xFF) + bir;
-            srcG = (int) con * (Value[i + 1] & 0xFF) + bir;
-            srcB = (int) con * (Value[i + 2] & 0xFF) + bir;
-            if (srcR > 255) srcR = 255;
-            if (srcG > 255) srcG = 255;
-            if (srcB > 255) srcB = 255;
-            if (srcR < 0) srcR = 0;
-            if (srcG < 0) srcG = 0;
-            if (srcB < 0) srcB = 0;
-            Value[i] = (byte) (con * (Value[i] & 0xFF) + bir);
-            Value[i + 1] = (byte) (con * (Value[i + 1] & 0xFF) + bir);
-            Value[i + 2] = (byte) (con * (Value[i + 2] & 0xFF) + bir);
         }
         src.put(0, 0, Value);
         return src;
@@ -214,13 +193,7 @@ public class ImageEffect {
         Mat result = new Mat();
         Imgproc.cvtColor(edge, edge, COLOR_GRAY2RGB);
         if (cartoon.total() > edge.total()) {
-            byte[] resultValue = new byte[(int) (edge.total() * edge.channels())];
-            byte[] tempValue = new byte[(int) (cartoon.total() * cartoon.channels())];
-            cartoon.get(0, 0, tempValue);
-            result = new Mat(edge.rows(), edge.cols(), edge.type());
-            System.arraycopy(tempValue, 0, resultValue, 0, resultValue.length);
-            result.put(0, 0, resultValue);
-            cartoon = result;
+            Imgproc.resize(cartoon,cartoon,new Size(edge.width(),edge.height()));
         }
         Core.bitwise_and(cartoon, edge, result);
         return result;
