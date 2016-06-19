@@ -144,8 +144,8 @@ public class MainRender implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
         }
         //param.set("orientation", "landscape");
         //param.setRotation(90);
+
         mCamera.setParameters ( param );
-        mCamera.setDisplayOrientation(90);
         mCamera.startPreview();
     }
 

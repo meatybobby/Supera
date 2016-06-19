@@ -70,13 +70,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setFormat(PixelFormat.UNKNOWN);
-        previewView = (SurfaceView) findViewById(R.id.surfaceView);
         drawView = (SurfaceView) findViewById(R.id.imageView);
         drawHolder = drawView.getHolder();
+        drawView.setZOrderMediaOverlay(true);
+
+        previewView = (SurfaceView) findViewById(R.id.surfaceView);
         previewHolder = previewView.getHolder();
         previewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         previewHolder.addCallback(this);
-        drawView.setZOrderMediaOverlay(true);
         previewMode = "none";
 
         previewAnimator = (ViewAnimator) findViewById(R.id.previewAnimator);
