@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -39,11 +39,11 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class PictureActivity extends Activity implements View.OnClickListener {
     private FuncUI UI;
-    private String type;
-    private String imgPath;
-    private Bitmap image, imgResult, imgOrig;
+    private Bitmap imgCurrent, imgShow, imgOrig;
     private boolean opencvEnable = false;
-    private ProgressDialog dialog;
+    public ImageButton btnConfirm, btnCancel;
+	public double window_W, window_H;
+    private String mode;
 
     void opencvLoader(BaseLoaderCallback mLoaderCallback){
         if (!OpenCVLoader.initDebug()) {
@@ -54,8 +54,6 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
-    int Red=0, Green=0, Blue=0;
-    public double window_W, window_H;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,37 +68,99 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         window_W = metrics.widthPixels;
         window_H = metrics.heightPixels;
+		mode = "none";
 
         /*開啟相簿*/
         Intent intent_album = new Intent(Intent.ACTION_PICK);
         intent_album.setType("image/*");
         intent_album.setAction(Intent.ACTION_GET_CONTENT);
-        //startActivityForResult(intent_album, REQUEST_IMAGE_SELECT);
         startActivityForResult(intent_album, 0);
 
+        btnConfirm = (ImageButton) findViewById(R.id.btn_confirm_action);
+        btnCancel = (ImageButton) findViewById(R.id.btn_cancel_action);
+        btnConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                savePicture();
+            }
+        });
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
-        UI.seekBarR.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        UI.effectSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 //UI.textView.setText("pr = " + progress);
-                Red = progress;
-                seekBarAction(image);
+                seekBarMotion(progress);
             }
+
+            @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
+
+            @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
 
-        UI.seekBarG.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Green = progress;
-                seekBarAction(image);
-            }
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-            public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+    }
+
+    private void seekBarMotion(int score){
+        if(opencvEnable) {
+            Mat imgMat = new Mat();
+            Mat imgMatResult = new Mat();
+            Utils.bitmapToMat(imgCurrent, imgMat);
+
+            switch(mode) {
+                case "lomo":
+                    //1:1.5, 50:2, 100:15
+                    imgMatResult = ImageEffect.lomo(imgMat, 1-score/100f);
+                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(imgMatResult, imgShow);
+                    break;
+                case "cartoon":
+                    imgMatResult = ImageEffect.cartoonEdge(imgMat);
+                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(imgMatResult, imgShow);
+                    break;
+                case "old":
+                    imgMatResult = ImageEffect.oldEffect(imgMat);
+                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(imgMatResult, imgShow);
+                    break;
+                case "edge":
+                    imgMatResult = ImageEffect.getEdge(imgMat);
+                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(imgMatResult, imgShow);
+                    break;
+                case "blur":
+                    imgMatResult = ImageEffect.cartoonize(imgMat);
+                    // Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
+                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(imgMatResult, imgShow);
+                    break;
+                case "pencil":
+                    imgMatResult = ImageEffect.pencil(imgMat);
+                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(imgMatResult, imgShow);
+                    break;
+                case "enhance":
+                    //imgShow = ImageEffect.Enhancement(imgCurrent);
+                    break;
+                case "gray":
+                    Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
+                    imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(imgMatResult, imgShow);
+                    break;
+            }
+            UI.imageView.setImageBitmap(imgShow);
+        }
         UI.seekBarB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Blue = progress;
@@ -122,49 +182,27 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         Utils.matToBitmap(imgMat, imgResult);
         UI.imageView.setImageBitmap(imgResult);
     }
+
     @Override
     public void onClick(View v) {
         if(opencvEnable) {
-            Mat imgMat = new Mat();
-            Mat imgMatResult = new Mat();
-            image = imgResult;
-            Utils.bitmapToMat(image, imgMat);
-
             switch (v.getId()) {
                 case R.id.btnOrig:
-                    imgResult = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
+					mode = "none";
+                    imgShow = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
+					imgCurrent = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
                     break;
 
                 case R.id.btnCartoon:
-                    imgMatResult = ImageEffect.cartoonEdge(imgMat);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+					UI.viewAnimator.showNext(); mode = "cartoon";
                     break;
 
                 case R.id.btnLomo:
-                    imgMat.convertTo(imgMatResult,-1,1.5,0);
-                    Utils.matToBitmap(imgMatResult, imgResult);
-                    /*imgMat = ImageEffect.darkMask(imgMat);
-                    imgMatResult = ImageEffect.HSV(imgMat,-3,1.5,0);
-                    imgMatResult = ImageEffect.setRGB(imgMatResult,-5,5,10);
-                    Utils.matToBitmap(imgMatResult, imgResult);*/
-                    /* Cat Ears
-                    FaceProcessor.Init(this);
-                    Bitmap catEar = BitmapFactory.decodeResource(getResources(),R.drawable.catear);
-                    imgResult = FaceProcessor.drawCatEar(image, catEar);*/
-
-                    /*FaceProcessor.Init(this);
-                    Bitmap nose = BitmapFactory.decodeResource(getResources(),R.drawable.nose);
-                    imgResult = FaceProcessor.drawNose(image, nose);*/
-                    /*FaceProcessor.Init(this);
-                    Bitmap blush = BitmapFactory.decodeResource(getResources(),R.drawable.blush);
-                    imgResult = FaceProcessor.drawBlush(image, blush);*/
+					UI.viewAnimator.showNext(); mode = "lomo";
                     break;
 
                 case R.id.btnOld:
-                    imgMat = ImageEffect.darkMask(imgMat);
-                    imgMatResult = ImageEffect.HSV(imgMat, 0, 0.8, 10);
-                    imgMatResult = ImageEffect.setRGB(imgMatResult, 5,-5,-5);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+                    UI.viewAnimator.showNext(); mode = "old";
                     break;
 
                 case R.id.btnRed:
@@ -186,16 +224,11 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 
                 case R.id.btnEdge:
-                    //Imgproc.Canny(imgMat,imgMatResult,123,250);
-                    imgMatResult = ImageEffect.darkMask(imgMat);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+                    UI.viewAnimator.showNext(); mode = "edge";
                     break;
 
                 case R.id.btnBlur:
-                    imgMatResult = ImageEffect.cartoonize(imgMat);
-                    // Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
-                    imgResult = Bitmap.createBitmap(imgMatResult.width(),imgMatResult.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+					UI.viewAnimator.showNext(); mode = "blur";
                     break;
 
                 case R.id.btnRGB:
@@ -204,21 +237,18 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 
                 case R.id.btnEnhance:
-                    imgMatResult = ImageEffect.Enhancement(imgMat);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+					UI.viewAnimator.showNext(); mode = "enhance";
                     break;
 
                 case R.id.btnPencil:
-                    imgMatResult = ImageEffect.pencil(imgMat);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+					UI.viewAnimator.showNext(); mode = "pencil";
                     break;
 
                 case R.id.btnGray:
-                    Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
-                    Utils.matToBitmap(imgMatResult, imgResult);
+                    UI.viewAnimator.showNext(); mode = "gray";
                     break;
             }
-            UI.imageView.setImageBitmap(imgResult);
+            UI.imageView.setImageBitmap(imgShow);
         }
     }
 
@@ -233,20 +263,21 @@ public class PictureActivity extends Activity implements View.OnClickListener {
              ContentResolver cr = this.getContentResolver();
 
              try {//讀取照片，型態為Bitmap
-                 image = BitmapFactory.decodeStream(cr.openInputStream(uri));
-                 int width = image.getWidth();
-                 int height = image.getHeight();
-                 if (width > 630 || height > 1120) {
-                     float scale = (width > height) ? width / 630 : height / 1120;
-                     image = ImageTransform.resize(image, scale);
-                 }
-                 imgOrig = image.copy(Bitmap.Config.ARGB_8888, true);
-                 UI.imageView.setImageBitmap(image);
-                 imgResult = image;
+                 imgCurrent = BitmapFactory.decodeStream(cr.openInputStream(uri));
              }
              catch (FileNotFoundException e)
-             {
-             }
+             {}
+
+            // resize
+            int width = imgCurrent.getWidth();
+            int height = imgCurrent.getHeight();
+            if(width > 630 || height > 1120) {
+                float scale = (width>height)? width/630 : height/1120;
+                imgCurrent = ImageTransform.resize(imgCurrent, scale);
+            }
+            imgOrig = imgCurrent.copy(Bitmap.Config.ARGB_8888, true);
+            UI.imageView.setImageBitmap(imgCurrent);
+            imgShow = imgCurrent;
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -274,6 +305,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     {
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+    }
+
+    private void savePicture(){
+
     }
 
 }

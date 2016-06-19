@@ -18,7 +18,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,9 +27,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".PictureActivity" />
-        <activity
-            android:name=".CameraActivity"
-            android:screenOrientation="portrait" />
         <activity android:name=".GLActivity" />
         <activity android:name=".BlendActivity"></activity>
     </application>
