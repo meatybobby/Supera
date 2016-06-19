@@ -33,40 +33,28 @@ import static org.opencv.imgproc.Imgproc.ellipse;
  * Created by gatto on 2016/6/17.
  */
 public class ImageEffect {
-    public static Bitmap changeRGB(Bitmap src, int R, int G, int B) {
-        int width = src.getWidth();
-        int height = src.getHeight();
-        Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
-
-        int x, y, srcR, srcG, srcB;
-        for(x=0; x<width; x++){
-            for(y=0; y<height; y++){
-                srcR = Color.red(src.getPixel(x, y)) + R*3;
-                srcG = Color.green(src.getPixel(x, y)) + G*3;
-                srcB = Color.blue(src.getPixel(x, y)) + B*3;
-                if(srcR>255) srcR=255;
-                if(srcG>255) srcG=255;
-                if(srcB>255) srcB=255;
-                if(srcR<0) srcR=0;
-                if(srcG<0) srcG=0;
-                if(srcB<0) srcB=0;
-                result.setPixel(x, y, Color.argb(1, srcR, srcG, srcB));
-            }
-        }
-        return result;
-    }
-
-    /*public static Mat setRGB(Mat src, int R, int G, int B){
-        int width = src.cols();
-        int height = src.rows();
-
+    public static Mat setRGB(Mat src, int R, int G, int B){
         byte[] Value = new byte[(int) (src.total()*src.channels())];
         src.get(0,0,Value);
+        int channel = src.channels();
         int srcR, srcG, srcB;
-        for(int i = 0;i<Value.length;i+=4) {
-            srcR = Value[i]&0xFF
+        for(int i = 0;i<Value.length;i+=channel) {
+            srcR = (int) (Value[i]&0xFF) + R*3;
+            srcG = (int) (Value[i+1]&0xFF) + G*3;
+            srcB = (int) (Value[i+2]&0xFF) + B*3;
+            if(srcR>255) srcR=255;
+            if(srcG>255) srcG=255;
+            if(srcB>255) srcB=255;
+            if(srcR<0) srcR=0;
+            if(srcG<0) srcG=0;
+            if(srcB<0) srcB=0;
+            Value[i] = (byte)srcR;
+            Value[i+1] = (byte)srcG;
+            Value[i+2] = (byte)srcB;
         }
-    }*/
+        src.put(0,0,Value);
+        return src;
+    }
 
     public static Bitmap Brighten(Bitmap src, double alpha,int beta){
         int width = src.getWidth();
@@ -87,7 +75,28 @@ public class ImageEffect {
         }
         return result;
     }
-
+    public static Mat setConBri(Mat src, double con, int bir){
+        byte[] Value = new byte[(int) (src.total()*src.channels())];
+        src.get(0,0,Value);
+        int channel = src.channels();
+        int srcR, srcG, srcB;
+        for(int i = 0;i<Value.length;i+=3) {
+            srcR = (int) con*(Value[i]&0xFF) + bir;
+            srcG = (int) con*(Value[i+1]&0xFF) + bir;
+            srcB = (int) con*(Value[i+2]&0xFF) + bir;
+            if(srcR>255) srcR=255;
+            if(srcG>255) srcG=255;
+            if(srcB>255) srcB=255;
+            if(srcR<0) srcR=0;
+            if(srcG<0) srcG=0;
+            if(srcB<0) srcB=0;
+            Value[i] = (byte) (con*(Value[i]&0xFF) + bir);
+            Value[i+1] = (byte) (con*(Value[i+1]&0xFF) + bir);
+            Value[i+2] = (byte) (con*(Value[i+2]&0xFF) + bir);
+        }
+        src.put(0,0,Value);
+        return src;
+    }
 
     public static Bitmap Enhancement(Bitmap src) {
         int width = src.getWidth();
@@ -225,14 +234,16 @@ public class ImageEffect {
     public static Mat HSV(Mat imgMat, int hh, double ss, int vv){
         Mat imgMatResult = new Mat();
         Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_RGB2HSV);
-        int w = imgMat.cols();
-        int h = imgMat.rows();
 
         byte[] imgValue = new byte[(int) (imgMat.total()*imgMat.channels())];
         imgMat.get(0,0,imgValue);
-        int s,v;
+        int h, s, v;
         for(int i = 0;i<imgValue.length;i+=3) {
             // imgValue[i] = (byte) (imgValue[i]& 0xFF);
+            h = (int)(imgValue[i]&0xFF) + hh;
+            if(h>180) h = h-180; if(h<0) h = h+180;
+            imgValue[i] =(byte) h;
+
             s = (int) ((int)(imgValue[i+1]&0xFF)*ss);
             if(s>255) s= 255; if(s<0) s=0;
             imgValue[i+1] =(byte) s;
@@ -263,4 +274,14 @@ public class ImageEffect {
     }
 
 
+
+    public static Bitmap Mosaic(Bitmap src){
+        int width = src.getWidth();
+        int height = src.getHeight();
+        Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
+
+        int M = (width<height)? width/30 : height/30;
+        result = ImageTransform.resize( ImageTransform.resize(src, M), (float) 1/M);
+        return result;
+    }
 }
