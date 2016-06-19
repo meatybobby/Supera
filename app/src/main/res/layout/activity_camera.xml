@@ -10,12 +10,27 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="nthu.bobby.supera.CameraActivity">
 
-    <nthu.bobby.supera.SuperaView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:visibility="gone"
-        android:id="@+id/java_surface_view"
-        opencv:show_fps="true"
-        opencv:camera_id="any" />
+    <SurfaceView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/surfaceView"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <SurfaceView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView"
+        android:layout_alignTop="@+id/surfaceView"
+        android:layout_alignStart="@+id/surfaceView" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/takeButton"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.os.Bundle;
@@ -28,6 +29,8 @@ import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,10 +45,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     private Bitmap imgCurrent, imgShow, imgOrig;
     private boolean opencvEnable = false;
     public ImageButton btnConfirm, btnCancel;
-	public double window_W, window_H;
+    public double window_W, window_H;
     private String mode;
 
-    void opencvLoader(BaseLoaderCallback mLoaderCallback){
+    void opencvLoader(BaseLoaderCallback mLoaderCallback) {
         if (!OpenCVLoader.initDebug()) {
             Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
@@ -68,14 +71,21 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         window_W = metrics.widthPixels;
         window_H = metrics.heightPixels;
-		mode = "none";
+        mode = "none";
 
+        Bundle bundle = getIntent().getExtras();
+        String path = bundle.getString("path");
+        if (path != null) {
+            getPictureFromPath(path);
+        } else {
         /*開啟相簿*/
-        Intent intent_album = new Intent(Intent.ACTION_PICK);
-        intent_album.setType("image/*");
-        intent_album.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent_album, 0);
+            Intent intent_album = new Intent(Intent.ACTION_PICK);
+            intent_album.setType("image/*");
+            intent_album.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(intent_album, 0);
+        }
 
+        FaceProcessor.Init(this);
         btnConfirm = (ImageButton) findViewById(R.id.btn_confirm_action);
         btnCancel = (ImageButton) findViewById(R.id.btn_cancel_action);
         btnConfirm.setOnClickListener(new View.OnClickListener() {
@@ -106,21 +116,18 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-
-            }
-        });
     }
 
-    private void seekBarMotion(int score){
-        if(opencvEnable) {
+    private void seekBarMotion(int score) {
+        if (opencvEnable) {
             Mat imgMat = new Mat();
             Mat imgMatResult = new Mat();
             Utils.bitmapToMat(imgCurrent, imgMat);
 
-            switch(mode) {
+            switch (mode) {
                 case "lomo":
                     //1:1.5, 50:2, 100:15
-                    imgMatResult = ImageEffect.lomo(imgMat, 1-score/100f);
+                    imgMatResult = ImageEffect.lomo(imgMat, 1 - score / 100f);
                     imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(imgMatResult, imgShow);
                     break;
@@ -161,74 +168,59 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             }
             UI.imageView.setImageBitmap(imgShow);
         }
-        UI.seekBarB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Blue = progress;
-                seekBarAction(image);
-            }
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-        FaceProcessor.Init(this);
-    }
-    void seekBarAction(Bitmap image) {
-        Mat imgMat = new Mat();
-        Utils.bitmapToMat(image, imgMat);
-        imgMat = ImageEffect.setRGB(imgMat, Red, Green, Blue);
-        //imgMat = ImageEffect.HSV();
-        imgResult = Bitmap.createBitmap(imgMat.width(),imgMat.height(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(imgMat, imgResult);
-        UI.imageView.setImageBitmap(imgResult);
     }
 
     @Override
     public void onClick(View v) {
-        if(opencvEnable) {
+        if (opencvEnable) {
             switch (v.getId()) {
                 case R.id.btnOrig:
-					mode = "none";
+                    mode = "none";
                     imgShow = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
-					imgCurrent = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
+                    imgCurrent = imgOrig.copy(Bitmap.Config.ARGB_8888, true);
                     break;
 
                 case R.id.btnCartoon:
-					UI.viewAnimator.showNext(); mode = "cartoon";
+                    UI.viewAnimator.showNext();
+                    mode = "cartoon";
                     break;
 
                 case R.id.btnLomo:
-					UI.viewAnimator.showNext(); mode = "lomo";
+                    UI.viewAnimator.showNext();
+                    mode = "lomo";
                     break;
 
                 case R.id.btnOld:
-                    UI.viewAnimator.showNext(); mode = "old";
+                    UI.viewAnimator.showNext();
+                    mode = "old";
                     break;
 
                 case R.id.btnRed:
                     //imgResult = FaceProcessor.drawEyes(image);
-                    Bitmap mustache = BitmapFactory.decodeResource(getResources(),R.drawable.mustache);
-                    imgResult = FaceProcessor.drawMustache(image, mustache);
+                    //Bitmap mustache = BitmapFactory.decodeResource(getResources(),R.drawable.mustache);
+                    //imgResult = FaceProcessor.drawMustache(image, mustache);
                     //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
                 case R.id.btnGreen:
-                    imgResult = FaceProcessor.drawPoints(image);
+                    //imgResult = FaceProcessor.drawPoints(image);
                     //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
 
                 case R.id.btnBlue:
-                    imgResult = FaceProcessor.drawEyesMosaic(image);
+                    //imgResult = FaceProcessor.drawEyesMosaic(image);
                     //Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
                     //imgMatResult = ImageEffect.setRGB(imgMatResult, 0, 0, 18);
                     //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
 
                 case R.id.btnEdge:
-                    UI.viewAnimator.showNext(); mode = "edge";
+                    UI.viewAnimator.showNext();
+                    mode = "edge";
                     break;
 
                 case R.id.btnBlur:
-					UI.viewAnimator.showNext(); mode = "blur";
+                    UI.viewAnimator.showNext();
+                    mode = "blur";
                     break;
 
                 case R.id.btnRGB:
@@ -237,15 +229,18 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 
                 case R.id.btnEnhance:
-					UI.viewAnimator.showNext(); mode = "enhance";
+                    UI.viewAnimator.showNext();
+                    mode = "enhance";
                     break;
 
                 case R.id.btnPencil:
-					UI.viewAnimator.showNext(); mode = "pencil";
+                    UI.viewAnimator.showNext();
+                    mode = "pencil";
                     break;
 
                 case R.id.btnGray:
-                    UI.viewAnimator.showNext(); mode = "gray";
+                    UI.viewAnimator.showNext();
+                    mode = "gray";
                     break;
             }
             UI.imageView.setImageBitmap(imgShow);
@@ -256,23 +251,21 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     @Override
     /*取得並顯示照片*/
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == 0)
-        {
+        if (resultCode == RESULT_OK && requestCode == 0) {
             //用URI取得相簿中的影像
-             Uri uri = data.getData();
-             ContentResolver cr = this.getContentResolver();
+            Uri uri = data.getData();
+            ContentResolver cr = this.getContentResolver();
 
-             try {//讀取照片，型態為Bitmap
-                 imgCurrent = BitmapFactory.decodeStream(cr.openInputStream(uri));
-             }
-             catch (FileNotFoundException e)
-             {}
+            try {//讀取照片，型態為Bitmap
+                imgCurrent = BitmapFactory.decodeStream(cr.openInputStream(uri));
+            } catch (FileNotFoundException e) {
+            }
 
             // resize
             int width = imgCurrent.getWidth();
             int height = imgCurrent.getHeight();
-            if(width > 630 || height > 1120) {
-                float scale = (width>height)? width/630 : height/1120;
+            if (width > 630 || height > 1120) {
+                float scale = (width > height) ? width / 630 : height / 1120;
                 imgCurrent = ImageTransform.resize(imgCurrent, scale);
             }
             imgOrig = imgCurrent.copy(Bitmap.Config.ARGB_8888, true);
@@ -287,28 +280,51 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.i("OpenCV", "OpenCV loaded successfully");
                     opencvEnable = true;
-                } break;
-                default:
-                {
+                }
+                break;
+                default: {
                     super.onManagerConnected(status);
-                } break;
+                }
+                break;
             }
         }
     };
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
 
-    private void savePicture(){
-
+    private void savePicture() {
+        String mediaStorageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/";
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imgPath = mediaStorageDir + "IMG_" + timeStamp + ".jpg";
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(imgPath);
+            imgShow.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
+            fileOutputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+    private void getPictureFromPath(String path) {
+        imgCurrent = BitmapFactory.decodeFile(path);
+        // resize
+        int width = imgCurrent.getWidth();
+        int height = imgCurrent.getHeight();
+        if (width > 630 || height > 1120) {
+            float scale = (width > height) ? width / 630 : height / 1120;
+            imgCurrent = ImageTransform.resize(imgCurrent, scale);
+        }
+        imgOrig = imgCurrent.copy(Bitmap.Config.ARGB_8888, true);
+        UI.imageView.setImageBitmap(imgCurrent);
+        imgShow = imgCurrent;
+    }
 }

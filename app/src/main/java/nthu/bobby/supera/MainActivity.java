@@ -2,10 +2,23 @@ package nthu.bobby.supera;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
+import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Environment;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
+import android.renderscript.Type;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -18,21 +31,36 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
-public class MainActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
-
+public class MainActivity extends Activity implements SurfaceHolder.Callback, Camera.PreviewCallback {
+    private Camera camera;
+    private SurfaceView previewView;
+    private SurfaceHolder previewHolder;
+    private boolean previewing = false;
+    private Button takeButton;
+    private SurfaceView drawView;
+    private SurfaceHolder drawHolder;
+    private int viewHeight, viewWidth;
+    private ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic;
+    private RenderScript rs;
+    private Allocation in, out;
+    private boolean indraw = false;
+    private int drawWidth, drawHeight;
     public ImageButton btnCamera, btnAlbum;
     public Button btnEffects;
     public Button btn_previewNone, btn_previewPencil, btn_previewBlur, btn_previewEdge;
-    private CameraBridgeViewBase mOpenCvCameraView;
-    private boolean              mIsJavaCamera = true;
-    private MenuItem mItemSwitchCamera = null;
     public ViewAnimator previewAnimator;
     private String previewMode;
 
@@ -41,12 +69,17 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.java_surface_view);
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setCvCameraViewListener(this);
+        getWindow().setFormat(PixelFormat.UNKNOWN);
+        previewView = (SurfaceView) findViewById(R.id.surfaceView);
+        drawView = (SurfaceView) findViewById(R.id.imageView);
+        drawHolder = drawView.getHolder();
+        previewHolder = previewView.getHolder();
+        previewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        previewHolder.addCallback(this);
+        drawView.setZOrderMediaOverlay(true);
         previewMode = "none";
 
-        previewAnimator = (ViewAnimator)findViewById(R.id.previewAnimator);
+        previewAnimator = (ViewAnimator) findViewById(R.id.previewAnimator);
         btnAlbum = (ImageButton) findViewById(R.id.btnAlbum);
         btnCamera = (ImageButton) findViewById(R.id.btnCamera);
         btnEffects = (Button) findViewById(R.id.btnEffects);
@@ -65,7 +98,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                camera.takePicture(null, null, pictureCallback);
             }
         });
         btnEffects.setOnClickListener(new View.OnClickListener() {
@@ -105,97 +138,33 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         });
     }
 
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        camera.stopPreview();
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
 
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i("OpenCV", "called onCreateOptionsMenu");
-        mItemSwitchCamera = menu.add("Toggle Native/Java camera");
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        String toastMesage = new String();
-        Log.i("OpenCV", "called onOptionsItemSelected; selected item: " + item);
-
-        if (item == mItemSwitchCamera) {
-            mOpenCvCameraView.setVisibility(SurfaceView.GONE);
-            mIsJavaCamera = !mIsJavaCamera;
-
-            if (mIsJavaCamera) {
-                mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.java_surface_view);
-                toastMesage = "Java Camera";
-            }
-            mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-            mOpenCvCameraView.setCvCameraViewListener(this);
-            mOpenCvCameraView.enableView();
-            Toast toast = Toast.makeText(this, toastMesage, Toast.LENGTH_LONG);
-            toast.show();
-
-        }
-
-        return true;
-    }
-
-    public void onCameraViewStarted(int width, int height) {
-    }
-
-    public void onCameraViewStopped() {
-    }
-
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        Mat mRgba = inputFrame.rgba();
-        switch(previewMode){
-            case "edge":
-                mRgba = ImageEffect.getEdge(mRgba);
-                break;
-            case "cartoon":
-                mRgba = ImageEffect.cartoonEdge(mRgba);
-                break;
-            case "pencil":
-                mRgba = ImageEffect.pencil(mRgba);
-                break;
-            case "blur":
-                mRgba = ImageEffect.cartoonize(mRgba);
-                break;
-            default:
-        }
-
-        return mRgba;
-}
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.i("OpenCV", "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
-                } break;
-                default:
-                {
+                    camera.startPreview();
+                }
+                break;
+                default: {
                     super.onManagerConnected(status);
-                } break;
+                }
+                break;
             }
         }
     };
@@ -205,4 +174,156 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         startActivity(intent);
     }
 
+    private Camera.PictureCallback pictureCallback = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            String mediaStorageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/";
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String imgPath = mediaStorageDir + "IMG_" + timeStamp + ".jpg";
+            Bitmap image = BitmapFactory.decodeByteArray(data, 0, data.length);
+            image = ImageTransform.rotate(image, 90);
+            Mat img = new Mat();
+            Utils.bitmapToMat(image,img);
+            switch (previewMode) {
+                case "none":
+                    break;
+                case "blur":
+                    img = ImageEffect.cartoonize(img);
+                    break;
+                case "edge":
+                    img = ImageEffect.getEdge(img);
+                    break;
+                case "pencil":
+                    img = ImageEffect.pencil(img);
+                    break;
+            }
+            image = Bitmap.createBitmap(img.width(),img.height(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(img,image);
+            try {
+                FileOutputStream fileOutputStream = new FileOutputStream(imgPath);
+                image.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
+                fileOutputStream.close();
+                Log.i("Supera", "Save picture to " + imgPath);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Intent intent = new Intent(MainActivity.this,PictureActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putString("path",imgPath);
+            intent.putExtras(bundle);
+            startActivity(intent);
+            camera.startPreview();
+        }
+    };
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        camera = Camera.open();
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        if (previewing) {
+            camera.stopPreview();
+            previewing = false;
+        }
+        try {
+            camera.setPreviewDisplay(holder);
+            Camera.Parameters parameters = camera.getParameters();
+            parameters.setFocusMode("auto");
+            List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
+            for (Camera.Size s : previewSizes) {
+                if (s.width <= 1000 && s.height <= 800) {
+                    parameters.setPreviewSize(s.width, s.height);
+                    break;
+                }
+            }
+            camera.setParameters(parameters);
+            camera.setPreviewCallback(this);
+            viewHeight = parameters.getPreviewSize().height;
+            viewWidth = parameters.getPreviewSize().width;
+            drawWidth = width;
+            drawHeight = height;
+            int imgformat = parameters.getPreviewFormat();
+            int bitsperpixel = ImageFormat.getBitsPerPixel(imgformat);
+            int frame_size = ((viewWidth * viewHeight) * bitsperpixel) / 8;
+            initRender(frame_size);
+            previewing = true;
+            Log.d("Supera", "Preview width=" + viewWidth + " Preview height=" + viewHeight + ",view width=" + width + " view height" + height);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        camera.stopPreview();
+        camera.release();
+        camera = null;
+        previewing = false;
+    }
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        if (indraw) return;
+        indraw = true;
+        if (data != null) {
+            synchronized (drawHolder) {
+                Canvas canvas = drawHolder.lockCanvas();
+                Camera.Parameters parameters = camera.getParameters();
+                int imageFormat = parameters.getPreviewFormat();
+                if (imageFormat == ImageFormat.NV21) {
+                    Bitmap bitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.ARGB_8888);
+                    Allocation bmData = renderScriptNV21ToRGBA888(data);
+                    bmData.copyTo(bitmap);
+                    // bitmap = ImageTransform.rotate(bitmap,90);
+                    Mat img = new Mat();
+                    Utils.bitmapToMat(bitmap, img);
+                    Mat mRotated = img.t();
+                    Core.flip(mRotated, mRotated, 1);
+                    switch (previewMode) {
+                        case "none":
+                            break;
+                        case "pencil":
+                            mRotated = ImageEffect.pencil(mRotated);
+                            break;
+                        case "blur":
+                            mRotated = ImageEffect.cartoonize(mRotated);
+                            break;
+                        case "edge":
+                            mRotated = ImageEffect.getEdge(mRotated);
+                            break;
+                    }
+                    img = new Mat(drawWidth, drawHeight, mRotated.type());
+                    Imgproc.resize(mRotated, img, new Size(drawWidth, drawHeight));
+                    bitmap = Bitmap.createBitmap(img.width(), img.height(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(img, bitmap);
+                    canvas.drawBitmap(bitmap, 0, 0, null);
+                }
+                camera.addCallbackBuffer(data);
+                drawHolder.unlockCanvasAndPost(canvas);
+            }
+        }
+        indraw = false;
+    }
+
+    private void initRender(int length) {
+        rs = RenderScript.create(getBaseContext());
+        yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
+        Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(length);
+        in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
+
+        Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(viewWidth).setY(viewHeight);
+        out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
+    }
+
+    public Allocation renderScriptNV21ToRGBA888(byte[] nv21) {
+        in.copyFrom(nv21);
+        yuvToRgbIntrinsic.setInput(in);
+        yuvToRgbIntrinsic.forEach(out);
+        return out;
+    }
 }
