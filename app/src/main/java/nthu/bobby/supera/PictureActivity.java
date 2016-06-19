@@ -83,50 +83,51 @@ public class PictureActivity extends Activity implements View.OnClickListener {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 //UI.textView.setText("pr = " + progress);
                 Red = progress;
+                seekBarAction(image);
             }
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
             public void onStopTrackingTouch(SeekBar seekBar) {
-                seekBarAction(image);
             }
         });
 
         UI.seekBarG.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Green = progress;
+                seekBarAction(image);
             }
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
             public void onStopTrackingTouch(SeekBar seekBar) {
-                seekBarAction(image);
             }
         });
         UI.seekBarB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Blue = progress;
+                seekBarAction(image);
             }
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
             public void onStopTrackingTouch(SeekBar seekBar) {
-                seekBarAction(image);
             }
         });
-
+        FaceProcessor.Init(this);
     }
-    void seekBarAction(Bitmap image){
+    void seekBarAction(Bitmap image) {
         Mat imgMat = new Mat();
         Utils.bitmapToMat(image, imgMat);
         imgMat = ImageEffect.setRGB(imgMat, Red, Green, Blue);
         //imgMat = ImageEffect.HSV();
+        imgResult = Bitmap.createBitmap(imgMat.width(),imgMat.height(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(imgMat, imgResult);
         UI.imageView.setImageBitmap(imgResult);
     }
     @Override
     public void onClick(View v) {
         if(opencvEnable) {
-            image = imgResult.copy(Bitmap.Config.ARGB_8888, true);;
             Mat imgMat = new Mat();
             Mat imgMatResult = new Mat();
+            image = imgResult;
             Utils.bitmapToMat(image, imgMat);
 
             switch (v.getId()) {
@@ -140,6 +141,8 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 
                 case R.id.btnLomo:
+                    imgMat.convertTo(imgMatResult,-1,1.5,0);
+                    Utils.matToBitmap(imgMatResult, imgResult);
                     /*imgMat = ImageEffect.darkMask(imgMat);
                     imgMatResult = ImageEffect.HSV(imgMat,-3,1.5,0);
                     imgMatResult = ImageEffect.setRGB(imgMatResult,-5,5,10);
@@ -152,9 +155,9 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     /*FaceProcessor.Init(this);
                     Bitmap nose = BitmapFactory.decodeResource(getResources(),R.drawable.nose);
                     imgResult = FaceProcessor.drawNose(image, nose);*/
-                    FaceProcessor.Init(this);
+                    /*FaceProcessor.Init(this);
                     Bitmap blush = BitmapFactory.decodeResource(getResources(),R.drawable.blush);
-                    imgResult = FaceProcessor.drawBlush(image, blush);
+                    imgResult = FaceProcessor.drawBlush(image, blush);*/
                     break;
 
                 case R.id.btnOld:
@@ -165,20 +168,17 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 
                 case R.id.btnRed:
-                    FaceProcessor.Init(this);
                     //imgResult = FaceProcessor.drawEyes(image);
                     Bitmap mustache = BitmapFactory.decodeResource(getResources(),R.drawable.mustache);
                     imgResult = FaceProcessor.drawMustache(image, mustache);
                     //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
                 case R.id.btnGreen:
-                    FaceProcessor.Init(this);
                     imgResult = FaceProcessor.drawPoints(image);
                     //Utils.matToBitmap(imgMatResult, imgResult);
                     break;
 
                 case R.id.btnBlue:
-                    FaceProcessor.Init(this);
                     imgResult = FaceProcessor.drawEyesMosaic(image);
                     //Imgproc.cvtColor(imgMat, imgMatResult, Imgproc.COLOR_RGB2GRAY);
                     //imgMatResult = ImageEffect.setRGB(imgMatResult, 0, 0, 18);
@@ -194,6 +194,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                 case R.id.btnBlur:
                     imgMatResult = ImageEffect.cartoonize(imgMat);
                     // Imgproc.GaussianBlur(imgMat, imgMatResult, new Size(17,17), 11, 11);
+                    imgResult = Bitmap.createBitmap(imgMatResult.width(),imgMatResult.height(), Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(imgMatResult, imgResult);
                     break;
 
@@ -203,7 +204,8 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 
                 case R.id.btnEnhance:
-                    imgResult = ImageEffect.Enhancement(image);
+                    imgMatResult = ImageEffect.Enhancement(imgMat);
+                    Utils.matToBitmap(imgMatResult, imgResult);
                     break;
 
                 case R.id.btnPencil:
@@ -232,13 +234,19 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 
              try {//讀取照片，型態為Bitmap
                  image = BitmapFactory.decodeStream(cr.openInputStream(uri));
+                 int width = image.getWidth();
+                 int height = image.getHeight();
+                 if (width > 630 || height > 1120) {
+                     float scale = (width > height) ? width / 630 : height / 1120;
+                     image = ImageTransform.resize(image, scale);
+                 }
+                 imgOrig = image.copy(Bitmap.Config.ARGB_8888, true);
+                 UI.imageView.setImageBitmap(image);
+                 imgResult = image;
              }
              catch (FileNotFoundException e)
              {
              }
-            imgOrig = image.copy(Bitmap.Config.ARGB_8888, true);
-            UI.imageView.setImageBitmap(image);
-            imgResult = image;
         }
 
         super.onActivityResult(requestCode, resultCode, data);
