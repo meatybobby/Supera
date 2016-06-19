@@ -59,7 +59,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
     private boolean indraw = false;
     private int drawWidth, drawHeight;
     public ImageButton btnCamera, btnAlbum, btnEffects;
-    public Button btn_previewNone, btn_previewPencil, btn_previewBlur, btn_previewEdge;
+    public Button btn_previewNone,  btn_previewBlur, btn_previewEdge;
+    public ImageButton btn_previewPencil;
     public ViewAnimator previewAnimator;
     private String previewMode;
 
@@ -85,7 +86,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         btnEffects = (ImageButton) findViewById(R.id.btnEffects);
 
         btn_previewNone = (Button) findViewById(R.id.btn_previewNone);
-        btn_previewPencil = (Button) findViewById(R.id.btn_previewPencil);
+        btn_previewPencil = (ImageButton) findViewById(R.id.btn_previewPencil);
         btn_previewBlur = (Button) findViewById(R.id.btn_previewBlur);
         btn_previewEdge = (Button) findViewById(R.id.btn_previewEdge);
 
@@ -140,7 +141,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
 
     public void onPause() {
         super.onPause();
-        camera.stopPreview();
+        if(camera != null) camera.stopPreview();
     }
 
     @Override

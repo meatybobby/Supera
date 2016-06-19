@@ -1,6 +1,7 @@
 package nthu.bobby.supera;
 
 import android.app.Activity;
+import android.opengl.GLSurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -17,6 +18,7 @@ public class FuncUI {
     public Button btnEdge, btnBlur, btnHSV, btnEnhance, btnGray;
     public Button btnRed, btnBlue, btnGreen, btnOld, btnMosaic;
     public Button btnCartoon, btnPencil, btnLomo;
+    public Button btnDocumentary;
     public ImageButton btnFaceDec, btn_catear, btn_blush, btn_mustache, btn_nose;
 	public ImageButton btnApply, btnDiscard;
     public ImageButton btnOrig;
@@ -51,6 +53,8 @@ public class FuncUI {
         btnPencil = (Button)activity.findViewById(R.id.btnPencil);
         btnLomo = (Button)activity.findViewById(R.id.btnLomo);
 
+        btnDocumentary = (Button)activity.findViewById(R.id.btnDocumentary);
+
         viewAnimator = (ViewAnimator)activity.findViewById(R.id.viewAnimator);
         statusBar = (ViewAnimator)activity.findViewById(R.id.statusBar);
         faceMenu = (ViewAnimator)activity.findViewById(R.id.faceMenu);
@@ -76,6 +80,7 @@ public class FuncUI {
         btn_blush.setOnClickListener(listener);
         btn_mustache.setOnClickListener(listener);
         btn_nose.setOnClickListener(listener);
+        btnDocumentary.setOnClickListener(listener);
     }
 
 }

@@ -11,6 +11,8 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.util.Log;
 
+import java.nio.IntBuffer;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -24,6 +26,10 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
 
     private TextureRenderer square;
     private int textures[] = new int[2];
+    private int W, H;
+    public Bitmap map;
+
+    public String type;
 
     public EffectsRenderer(Context context) {
         super();
@@ -31,6 +37,7 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
         photoWidth = photo.getWidth();
         photoHeight = photo.getHeight();
         square = new TextureRenderer();
+        type = "none";
     }
 
     @Override
@@ -52,6 +59,8 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        W = width;
+        H = height;
         GLES20.glViewport(0, 0, width, height);
         GLES20.glClearColor(0, 0, 0, 1);
         generateSquare();
@@ -66,11 +75,45 @@ public class EffectsRenderer implements GLSurfaceView.Renderer {
         if (effect != null) {
             effect.release();
         }
+
         EffectFactory factory = effectContext.getFactory();
-        grainEffect(factory);
+        switch(type){
+            case "doc":
+                documentaryEffect(factory);
+                break;
+            default:
+        }
+
         effect.apply(textures[0], photoWidth, photoHeight, textures[1]);
         square.updateTextureSize(photoWidth, photoHeight);
         square.renderTexture(textures[1]);
+        map = createBitmapFromGLSurface(W, H);
+    }
+
+    private Bitmap createBitmapFromGLSurface(int w, int h) {
+        int b[] = new int[ w * h];
+        int bt[] = new int[w * h];
+        IntBuffer buffer = IntBuffer.wrap(b);
+        buffer.position(0);
+        GLES20.glReadPixels(0, 0, w, h, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer);
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                int pix = b[i * w + j];
+                int pb = (pix >> 16) & 0xff;
+                int pr = (pix << 16) & 0x00ff0000;
+                int pix1 = (pix & 0xff00ff00) | pr | pb;
+                bt[(h - i - 1) * w + j] = pix1;
+            }
+        }
+        Bitmap inBitmap = null;
+        if (inBitmap == null || !inBitmap.isMutable()
+                || inBitmap.getWidth() != w || inBitmap.getHeight() != h) {
+            inBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        }
+        inBitmap.copyPixelsFromBuffer(buffer);
+        inBitmap = Bitmap.createBitmap(bt, w, h, Bitmap.Config.ARGB_8888);
+
+        return inBitmap;
     }
 
     private void documentaryEffect(EffectFactory factory) {
