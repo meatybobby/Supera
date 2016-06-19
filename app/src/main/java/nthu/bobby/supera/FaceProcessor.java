@@ -98,7 +98,7 @@ public class FaceProcessor {
             int width = (eye2x-eye1x)/2;
             int height = (cheek-eye1y)/2;
             Bitmap rect = ImageTransform.getCroppedRec(bitmap, eye1x-width, eye1y-height, eye2x+width, eye1y+height);
-            rect = ImageEffect.Mosaic(rect);
+            rect = ImageEffect.Mosaic(rect, 30);
             canvasBmp = ImageTransform.getCombinationBitmap(rect,bitmap,0,0);
         }
         Log.i("HHH"," " + faces.size());

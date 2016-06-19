@@ -9,142 +9,140 @@
     tools:context="nthu.bobby.supera.MainActivity"
     android:background="#333333">
 
+
     <RelativeLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true">
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent">
 
-        <RelativeLayout
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="match_parent">
-
-            <nthu.bobby.supera.SuperaView
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:visibility="gone"
-                android:id="@+id/java_surface_view"
-                opencv:show_fps="true"
-                opencv:camera_id="any" />
-
-        </RelativeLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="60dp"
-            android:background="#962f2f2f">
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btnAlbum"
-                android:src="@drawable/btn_album_press"
-                android:background="#00ffffff"
-                android:layout_gravity="center_vertical"
-                android:longClickable="true"
-                android:clickable="false"
-                android:layout_margin="5dp" />
-
-        </LinearLayout>
-
-        <ViewAnimator
+        <nthu.bobby.supera.SuperaView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/previewAnimator"
-            android:animateFirstView="false"
-            android:layout_marginBottom="110dp"
-            android:layout_marginLeft="30dp"
-            android:layout_marginTop="60dp"
-            android:layout_marginRight="30dp"
-            android:clickable="true">
+            android:visibility="gone"
+            android:id="@+id/java_surface_view"
+            opencv:show_fps="true"
+            opencv:camera_id="any" />
 
-            <FrameLayout
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
-            </FrameLayout>
+    </RelativeLayout>
 
-            <RelativeLayout
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:background="#98b4b4b4">
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:background="#b52f2f2f"
+        android:layout_alignParentBottom="true">
 
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="30dp"
-                    android:id="@+id/btn_previewNone"
-                    android:text="none"
-                    android:textColor="#e5e5e5"
-                    android:background="#af2c2c2c"
-                    android:clickable="true"
-                    android:textSize="18dp" />
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_alignParentTop="true"
-                    android:layout_marginTop="30dp"
-                    android:id="@+id/btn_previewPencil"
-                    android:text="pencil"
-                    android:textColor="#e5e5e5"
-                    android:background="#af2c2c2c"
-                    android:textSize="18dp" />
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginTop="30dp"
-                    android:text="blur"
-                    android:id="@+id/btn_previewBlur"
-                    android:textColor="#e5e5e5"
-                    android:background="#af2c2c2c"
-                    android:textSize="18dp" />
+        <ImageButton
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:id="@+id/btnAlbum"
+            android:src="@drawable/btn_album_press"
+            android:background="#00ffffff"
+            android:layout_gravity="center_vertical"
+            android:longClickable="true"
+            android:clickable="false"
+            android:layout_marginLeft="8dp"
+            android:layout_alignParentStart="true" />
 
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="100dp"
-                    android:text="edge"
-                    android:id="@+id/btn_previewEdge"
-                    android:textColor="#e5e5e5"
-                    android:background="#af2c2c2c"
-                    android:textSize="18dp" />
-
-            </RelativeLayout>
-        </ViewAnimator>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageButton
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_alignParentBottom="true"
             android:id="@+id/btnEffects"
-            android:text="Effects"
+            android:src="@drawable/btn_effect_press"
             android:textSize="14sp"
             android:textStyle="bold"
             android:background="#00ffffff"
-            android:textColor="@color/primary_material_light" />
-
-        <ImageButton
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="8dp"
-            android:id="@+id/btnCamera"
-            android:src="@drawable/camera"
-            android:background="#00ffffff"
-            android:layout_gravity="center_vertical"/>
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="8dp"
+            android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
+
+    <ViewAnimator
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/previewAnimator"
+        android:animateFirstView="false"
+        android:layout_marginBottom="110dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="30dp"
+        android:clickable="true">
+
+        <FrameLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+        </FrameLayout>
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="#98b4b4b4">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="30dp"
+                android:id="@+id/btn_previewNone"
+                android:text="none"
+                android:textColor="#e5e5e5"
+                android:background="#af2c2c2c"
+                android:clickable="true"
+                android:textSize="18dp" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="30dp"
+                android:id="@+id/btn_previewPencil"
+                android:text="pencil"
+                android:textColor="#e5e5e5"
+                android:background="#af2c2c2c"
+                android:textSize="18dp" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="30dp"
+                android:text="blur"
+                android:id="@+id/btn_previewBlur"
+                android:textColor="#e5e5e5"
+                android:background="#af2c2c2c"
+                android:textSize="18dp" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="100dp"
+                android:text="edge"
+                android:id="@+id/btn_previewEdge"
+                android:textColor="#e5e5e5"
+                android:background="#af2c2c2c"
+                android:textSize="18dp" />
+
+        </RelativeLayout>
+    </ViewAnimator>
+
+    <ImageButton
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="8dp"
+        android:id="@+id/btnCamera"
+        android:src="@drawable/camera_press"
+        android:longClickable="true"
+        android:clickable="false"
+        android:background="#00ffffff"
+        android:layout_gravity="center_vertical"/>
+
 </RelativeLayout>

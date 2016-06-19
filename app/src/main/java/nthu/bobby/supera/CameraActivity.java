@@ -115,7 +115,7 @@ public class CameraActivity extends Activity implements CameraBridgeViewBase.CvC
         //Bitmap bmp = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
         //Utils.matToBitmap(mRgba,bmp);
         //Utils.bitmapToMat(FaceProcessor.drawEyes(bmp),mRgba);
-        return ImageEffect.pencil(mRgba);
+        return mRgba;
     }
 
 }

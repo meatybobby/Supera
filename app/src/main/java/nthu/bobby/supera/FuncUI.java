@@ -14,26 +14,33 @@ import android.widget.ViewAnimator;
  */
 public class FuncUI {
     public ImageView imageView;
-    public Button btnEdge, btnBlur, btnRGB, btnEnhance, btnGray;
-    public Button btnRed, btnBlue, btnGreen, btnOld;
+    public Button btnEdge, btnBlur, btnHSV, btnEnhance, btnGray;
+    public Button btnRed, btnBlue, btnGreen, btnOld, btnMosaic;
     public Button btnCartoon, btnPencil, btnLomo;
+    public ImageButton btnFaceDec, btn_catear, btn_blush, btn_mustache, btn_nose;
 	public ImageButton btnApply, btnDiscard;
     public ImageButton btnOrig;
-    public TextView textView;
-    public ViewAnimator viewAnimator;
-    public SeekBar effectSeekBar, seekBarR, seekBarG, seekBarB;
+    public TextView effectView;
+    public ViewAnimator viewAnimator, statusBar, faceMenu;
+    public SeekBar effectSeekBar;
 
     public FuncUI(Activity activity){
         imageView = (ImageView)activity.findViewById(R.id.imageView);
-        //textView = (TextView)activity.findViewById(R.id.textView);
+        effectView = (TextView)activity.findViewById(R.id.effect_view);
 
         btnOrig = (ImageButton)activity.findViewById(R.id.btnOrig);
-		//btnApply = (ImageButton)activity.findViewById(R.id.btnApply);
-		//btnDiscard = (ImageButton)activity.findViewById(R.id.btnDiscard);
+		btnApply = (ImageButton)activity.findViewById(R.id.btnApply);
+		btnDiscard = (ImageButton)activity.findViewById(R.id.btnDiscard);
+        btnFaceDec = (ImageButton)activity.findViewById(R.id.btnFaceDec);
+        btn_catear = (ImageButton)activity.findViewById(R.id.btn_catear);
+        btn_blush = (ImageButton)activity.findViewById(R.id.btn_blush);
+        btn_mustache = (ImageButton)activity.findViewById(R.id.btn_mustache);
+        btn_nose = (ImageButton)activity.findViewById(R.id.btn_nose);
 
         btnBlur = (Button)activity.findViewById(R.id.btnBlur);
         btnEdge = (Button)activity.findViewById(R.id.btnEdge);
-        btnRGB = (Button)activity.findViewById(R.id.btnRGB);
+        btnHSV = (Button)activity.findViewById(R.id.btnHSV);
+        btnMosaic = (Button)activity.findViewById(R.id.btnMosaic);
         btnEnhance = (Button)activity.findViewById(R.id.btnEnhance);
         btnGray = (Button)activity.findViewById(R.id.btnGray);
         btnRed = (Button)activity.findViewById(R.id.btnRed);
@@ -45,6 +52,8 @@ public class FuncUI {
         btnLomo = (Button)activity.findViewById(R.id.btnLomo);
 
         viewAnimator = (ViewAnimator)activity.findViewById(R.id.viewAnimator);
+        statusBar = (ViewAnimator)activity.findViewById(R.id.statusBar);
+        faceMenu = (ViewAnimator)activity.findViewById(R.id.faceMenu);
         effectSeekBar = (SeekBar)activity.findViewById(R.id.seekBar_effect);
     }
 
@@ -52,7 +61,8 @@ public class FuncUI {
         btnOrig.setOnClickListener(listener);
         btnBlur.setOnClickListener(listener);
         btnEdge.setOnClickListener(listener);
-        btnRGB.setOnClickListener(listener);
+        btnHSV.setOnClickListener(listener);
+        btnMosaic.setOnClickListener(listener);
         btnEnhance.setOnClickListener(listener);
         btnGray.setOnClickListener(listener);
         btnRed.setOnClickListener(listener);
@@ -62,6 +72,10 @@ public class FuncUI {
         btnCartoon.setOnClickListener(listener);
         btnPencil.setOnClickListener(listener);
         btnLomo.setOnClickListener(listener);
+        btn_catear.setOnClickListener(listener);
+        btn_blush.setOnClickListener(listener);
+        btn_mustache.setOnClickListener(listener);
+        btn_nose.setOnClickListener(listener);
     }
 
 }

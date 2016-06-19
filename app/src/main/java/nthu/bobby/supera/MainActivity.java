@@ -27,8 +27,7 @@ import java.util.Date;
 
 public class MainActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
-    public ImageButton btnCamera, btnAlbum;
-    public Button btnEffects;
+    public ImageButton btnCamera, btnAlbum, btnEffects;
     public Button btn_previewNone, btn_previewPencil, btn_previewBlur, btn_previewEdge;
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean              mIsJavaCamera = true;
@@ -49,7 +48,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         previewAnimator = (ViewAnimator)findViewById(R.id.previewAnimator);
         btnAlbum = (ImageButton) findViewById(R.id.btnAlbum);
         btnCamera = (ImageButton) findViewById(R.id.btnCamera);
-        btnEffects = (Button) findViewById(R.id.btnEffects);
+        btnEffects = (ImageButton) findViewById(R.id.btnEffects);
 
         btn_previewNone = (Button) findViewById(R.id.btn_previewNone);
         btn_previewPencil = (Button) findViewById(R.id.btn_previewPencil);
