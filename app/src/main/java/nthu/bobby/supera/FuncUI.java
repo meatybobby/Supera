@@ -20,7 +20,7 @@ public class FuncUI {
     public Button btnRed, btnBlue, btnGreen, btnOld, btnMosaic;
     public Button btnCartoon, btnPencil, btnLomo, btnDetail;
     public Button btnDocumentary, btnFisheye, btnFilllight, btnGrain;
-    public ImageButton btnFaceDec, btn_catear, btn_blush, btn_mustache, btn_nose;
+    public ImageButton btnFaceDec, btn_catear, btn_blush, btn_mustache, btn_nose, btn_seaweed, btn_mosaic;
 	public ImageButton btnApply, btnDiscard;
     public ImageButton btnOrig;
     public TextView effectView;
@@ -39,6 +39,8 @@ public class FuncUI {
         btn_blush = (ImageButton)activity.findViewById(R.id.btn_blush);
         btn_mustache = (ImageButton)activity.findViewById(R.id.btn_mustache);
         btn_nose = (ImageButton)activity.findViewById(R.id.btn_nose);
+        btn_seaweed = (ImageButton)activity.findViewById(R.id.btn_seaweed);
+        btn_mosaic = (ImageButton)activity.findViewById(R.id.btn_mosaic);
 
         btnBlur = (Button)activity.findViewById(R.id.btnBlur);
         btnEdge = (Button)activity.findViewById(R.id.btnEdge);
@@ -85,6 +87,8 @@ public class FuncUI {
         btn_blush.setOnClickListener(listener);
         btn_mustache.setOnClickListener(listener);
         btn_nose.setOnClickListener(listener);
+        btn_seaweed.setOnClickListener(listener);
+        btn_mosaic.setOnClickListener(listener);
         btnDetail.setOnClickListener(listener);
         btnDocumentary.setOnClickListener(listener);
         btnFisheye.setOnClickListener(listener);

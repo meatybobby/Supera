@@ -45,6 +45,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     private String mode;
     private boolean noSeekBar;
     private boolean glViewOn = false;
+    private boolean faceMenuOn = false;
 
     private GLSurfaceView view;
     private EffectsRenderer effect;
@@ -121,6 +122,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                 if(!noSeekBar) {
                     UI.viewAnimator.showNext();
                 }
+                if(faceMenuOn){
+                    UI.faceMenu.showNext();
+                    faceMenuOn = false;
+                }
                 UI.statusBar.showNext();
                 UI.imageView.setImageBitmap(imgCurrent);
                 view.setVisibility(View.INVISIBLE);
@@ -134,6 +139,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                 if(!noSeekBar) {
                     UI.viewAnimator.showNext();
                 }
+                if(faceMenuOn){
+                    UI.faceMenu.showNext();
+                    faceMenuOn = false;
+                }
                 UI.statusBar.showNext();
                 UI.imageView.setImageBitmap(imgCurrent);
                 view.setVisibility(View.INVISIBLE);
@@ -143,7 +152,10 @@ public class PictureActivity extends Activity implements View.OnClickListener {
         UI.btnFaceDec.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UI.faceMenu.showNext();
+                if(!faceMenuOn) {
+                    UI.faceMenu.showNext();
+                    faceMenuOn = true;
+                }
             }
         });
 
@@ -167,7 +179,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
     private void seekBarMotion(int score){
         if(opencvEnable) {
             score = score*2-100;
-            String status = mode + " " + score;
+            String status = mode + "  " + score;
             UI.effectView.setText(status);
 
             Mat imgMat = new Mat();
@@ -219,7 +231,7 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     imgMatResult = ImageEffect.HSV(imgMat, (int)(score*0.9f), 1, 0);
                     break;
                 case "Saturation":
-                    imgMatResult = ImageEffect.HSV(imgMat, 0, score/100f, 0);
+                    imgMatResult = ImageEffect.HSV(imgMat, 0, 1+(score/100f), 0);
                     break;
 				case "Cat Ear":
                     Bitmap catEar = BitmapFactory.decodeResource(getResources(),R.drawable.catear);
@@ -241,6 +253,14 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     imgShow = FaceProcessor.drawNose(imgCurrent, nose);
 					bitmap = true;
 					break;
+                case "Seaweed":
+                    imgShow = FaceProcessor.drawEyes(imgCurrent);
+                    bitmap = true;
+                    break;
+                case "Eye Mosaic":
+                    imgShow = FaceProcessor.drawEyesMosaic(imgCurrent);
+                    bitmap = true;
+                    break;
                 case "Documentary":
                     glViewOn = true;
                     break;
@@ -344,6 +364,12 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                     break;
 				case R.id.btn_nose:
                     mode = "Nose"; noSeekBar = true;
+                    break;
+                case R.id.btn_seaweed:
+                    mode = "Seaweed"; noSeekBar = true;
+                    break;
+                case R.id.btn_mosaic:
+                    mode = "Eye Mosaic"; noSeekBar = true;
                     break;
                 case R.id.btnDocumentary:
                     mode = "Documentary"; noSeekBar = true;
