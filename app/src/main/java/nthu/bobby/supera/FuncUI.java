@@ -1,6 +1,7 @@
 package nthu.bobby.supera;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.view.View;
 import android.widget.Button;
@@ -18,7 +19,7 @@ public class FuncUI {
     public Button btnEdge, btnBlur, btnHSV, btnEnhance, btnGray;
     public Button btnRed, btnBlue, btnGreen, btnOld, btnMosaic;
     public Button btnCartoon, btnPencil, btnLomo, btnDetail;
-    public Button btnDocumentary;
+    public Button btnDocumentary, btnFisheye, btnFilllight, btnGrain;
     public ImageButton btnFaceDec, btn_catear, btn_blush, btn_mustache, btn_nose;
 	public ImageButton btnApply, btnDiscard;
     public ImageButton btnOrig;
@@ -55,6 +56,9 @@ public class FuncUI {
         btnDetail = (Button) activity.findViewById(R.id.btnDetail);
 
         btnDocumentary = (Button)activity.findViewById(R.id.btnDocumentary);
+        btnFisheye = (Button)activity.findViewById(R.id.btnFisheye);
+        btnFilllight = (Button)activity.findViewById(R.id.btnFilllight);
+        btnGrain = (Button)activity.findViewById(R.id.btnGrain);
 
         viewAnimator = (ViewAnimator)activity.findViewById(R.id.viewAnimator);
         statusBar = (ViewAnimator)activity.findViewById(R.id.statusBar);
@@ -83,6 +87,9 @@ public class FuncUI {
         btn_nose.setOnClickListener(listener);
         btnDetail.setOnClickListener(listener);
         btnDocumentary.setOnClickListener(listener);
+        btnFisheye.setOnClickListener(listener);
+        btnFilllight.setOnClickListener(listener);
+        btnGrain.setOnClickListener(listener);
     }
 
 }

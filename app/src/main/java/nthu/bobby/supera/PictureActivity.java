@@ -243,12 +243,23 @@ public class PictureActivity extends Activity implements View.OnClickListener {
 					break;
                 case "Documentary":
                     glViewOn = true;
-                    effect.setPhoto(imgCurrent);
-                    view.requestRender();
-                    imgShow = effect.map;
-                    view.setVisibility(View.VISIBLE);
-                    bitmap = true;
                     break;
+                case "Fish Eye":
+                    glViewOn = true;
+                    break;
+                case "Fill Light":
+                    glViewOn = true;
+                    break;
+                case "Grain":
+                    glViewOn = true;
+                    break;
+            }
+            if(glViewOn){
+                effect.setPhoto(imgCurrent);
+                view.requestRender();
+                imgShow = effect.map;
+                view.setVisibility(View.VISIBLE);
+                bitmap = true;
             }
             if(!bitmap) {
                 imgShow = Bitmap.createBitmap(imgMatResult.width(), imgMatResult.height(), Bitmap.Config.ARGB_8888);
@@ -337,6 +348,18 @@ public class PictureActivity extends Activity implements View.OnClickListener {
                 case R.id.btnDocumentary:
                     mode = "Documentary"; noSeekBar = true;
                     effect.type = "doc";
+                    break;
+                case R.id.btnFisheye:
+                    mode = "Fish Eye"; noSeekBar = true;
+                    effect.type = "feye";
+                    break;
+                case R.id.btnFilllight:
+                    mode = "Fill Light"; noSeekBar = true;
+                    effect.type = "flight";
+                    break;
+                case R.id.btnGrain:
+                    mode = "Grain"; noSeekBar = true;
+                    effect.type = "grain";
                     break;
             }
             if(!mode.equals("none")) {
